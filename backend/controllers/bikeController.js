@@ -1,4 +1,5 @@
 const Bike = require('../models/Bike');
+const Booking = require('../models/Booking');
 const path = require('path');
 const fs = require('fs');
 

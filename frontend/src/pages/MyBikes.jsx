@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AuthContext from '../context/AuthContext'
 import * as bikeService from '../services/bikeService'
+import './MyBikes.css'
 
 export default function MyBikes() {
   const { user } = useContext(AuthContext)
@@ -26,64 +27,134 @@ export default function MyBikes() {
   }
 
   const handleDelete = async (bikeId) => {
-    if (!window.confirm('Are you sure you want to delete this bike?')) return
+    if (!window.confirm('Are you sure you want to delete this bike? This action cannot be undone.')) return
     try {
       await bikeService.deleteBike(bikeId)
       setBikes(bikes.filter(b => b._id !== bikeId))
-      setMsg('Bike deleted')
+      setMsg('Bike deleted successfully')
     } catch (err) {
       setMsg(`Error deleting bike: ${err.message}`)
     }
   }
 
   const getStatusBadge = (bike) => {
-    if (bike.isApproved) return <span style={{ color: 'green', fontWeight: 'bold' }}>✓ Approved</span>
-    return <span style={{ color: 'orange', fontWeight: 'bold' }}>⧗ Pending</span>
+    if (bike.isApproved === true) {
+      return <span className="status-badge status-approved">✓ Approved</span>
+    } else if (bike.isApproved === false) {
+      return <span className="status-badge status-pending">⧗ Pending Approval</span>
+    }
+    return <span className="status-badge status-rejected">✕ Rejected</span>
   }
 
   if (!user || user.role !== 'owner') {
-    return <div><p>Only bike owners can access this page.</p></div>
+    return (
+      <div className="my-bikes-container">
+        <div className="empty-state">
+          <p>Only bike owners can access this page.</p>
+          <Link to="/" style={{ marginTop: '15px', display: 'inline-block', padding: '10px 20px', background: '#007bff', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>
+            Back to Home
+          </Link>
+        </div>
+      </div>
+    )
   }
 
-  if (loading) return <div><p>Loading...</p></div>
+  if (loading) {
+    return (
+      <div className="my-bikes-container">
+        <div className="loading-spinner">Loading your bikes...</div>
+      </div>
+    )
+  }
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
-      <h2>My Bikes</h2>
-      <Link to="/add-bike" style={{ display: 'inline-block', marginBottom: '20px', padding: '10px 15px', backgroundColor: '#007bff', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>
-        + Add New Bike
-      </Link>
+    <div className="my-bikes-container">
+      <div className="my-bikes-header">
+        <h2>My Bikes</h2>
+        <Link to="/add-bike" className="add-bike-button">
+          + Add New Bike
+        </Link>
+      </div>
 
-      {msg && <p style={{ padding: '10px', backgroundColor: msg.includes('Error') ? '#ffe6e6' : '#e6ffe6' }}>{msg}</p>}
+      {msg && (
+        <div className={`message ${msg.includes('Error') ? 'error-msg' : 'success-msg'}`}>
+          {msg}
+        </div>
+      )}
 
       {bikes.length === 0 ? (
-        <p>You haven't added any bikes yet.</p>
+        <div className="empty-state">
+          <p>You haven't added any bikes yet.</p>
+          <Link to="/add-bike" className="add-bike-button">
+            + Add Your First Bike
+          </Link>
+        </div>
       ) : (
-        <div style={{ display: 'grid', gap: '20px' }}>
+        <div className="bikes-grid">
           {bikes.map(bike => (
-            <div key={bike._id} style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                <div>
-                  <h3>{bike.brand} {bike.model} ({bike.year})</h3>
-                  <p><strong>Type:</strong> {bike.type}</p>
-                  <p><strong>Price/Day:</strong> ${bike.pricePerDay}</p>
-                  <p><strong>Deposit:</strong> ${bike.securityDeposit || 'N/A'}</p>
-                  <p><strong>Status:</strong> {getStatusBadge(bike)}</p>
-                  <p><strong>Condition:</strong> {bike.condition}</p>
-                  {bike.location?.area && <p><strong>Area:</strong> {bike.location.area}</p>}
+            <div key={bike._id} className="bike-card">
+              <div className="bike-card-content">
+                <div className="bike-info">
+                  <h3 className="bike-title">
+                    {bike.brand} {bike.model} <span style={{ fontSize: '0.8em', color: '#999' }}>({bike.year})</span>
+                  </h3>
+                  
+                  {getStatusBadge(bike)}
+
+                  <div className="bike-details">
+                    <div className="bike-detail">
+                      <span className="bike-detail-label">Type</span>
+                      <span className="bike-detail-value">{bike.type}</span>
+                    </div>
+                    <div className="bike-detail">
+                      <span className="bike-detail-label">Price/Day</span>
+                      <span className="bike-detail-value">₹{bike.pricePerDay}</span>
+                    </div>
+                    <div className="bike-detail">
+                      <span className="bike-detail-label">Security Deposit</span>
+                      <span className="bike-detail-value">{bike.securityDeposit ? `₹${bike.securityDeposit}` : 'N/A'}</span>
+                    </div>
+                    <div className="bike-detail">
+                      <span className="bike-detail-label">Condition</span>
+                      <span className="bike-detail-value">{bike.condition}</span>
+                    </div>
+                    {bike.location?.area && (
+                      <div className="bike-detail">
+                        <span className="bike-detail-label">Pickup Area</span>
+                        <span className="bike-detail-value">{bike.location.area}</span>
+                      </div>
+                    )}
+                    {bike.registrationNumber && (
+                      <div className="bike-detail">
+                        <span className="bike-detail-label">Registration</span>
+                        <span className="bike-detail-value">{bike.registrationNumber}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {bike.description && (
+                    <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#f5f5f5', borderRadius: '4px', fontSize: '14px', color: '#555' }}>
+                      <strong>Description:</strong> {bike.description}
+                    </div>
+                  )}
+
                   {bike.images?.length > 0 && (
-                    <div style={{ marginTop: '10px', display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                      {bike.images.map((img, idx) => (
-                        <img key={idx} src={img} alt="bike" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
-                      ))}
+                    <div>
+                      <strong style={{ display: 'block', marginBottom: '8px', marginTop: '12px' }}>Images:</strong>
+                      <div className="bike-images">
+                        {bike.images.map((img, idx) => (
+                          <img key={idx} src={img} alt={`${bike.brand} ${bike.model} ${idx + 1}`} className="bike-image" title={`Image ${idx + 1}`} />
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <Link to={`/add-bike/${bike._id}`} style={{ padding: '8px 15px', backgroundColor: '#28a745', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>
+
+                <div className="bike-actions">
+                  <Link to={`/add-bike/${bike._id}`} className="action-button edit-button">
                     Edit
                   </Link>
-                  <button onClick={() => handleDelete(bike._id)} style={{ padding: '8px 15px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                  <button onClick={() => handleDelete(bike._id)} className="action-button delete-button">
                     Delete
                   </button>
                 </div>
