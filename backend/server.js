@@ -14,6 +14,7 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
+app.use('/uploads', express.static('uploads')); // Serve uploaded images
 
 // Routes
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));

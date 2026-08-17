@@ -17,3 +17,31 @@ export async function healthCheck() {
     return { error: true, message: err.message }
   }
 }
+
+// Bike API methods
+export const bikeAPI = {
+  // Create a new bike listing
+  createBike: (bikeData) => api.post('/api/bikes', bikeData),
+
+  // Get all approved bikes (public browse)
+  getAllBikes: (filters) => api.get('/api/bikes', { params: filters }),
+
+  // Get a single bike by ID
+  getBikeById: (id) => api.get(`/api/bikes/${id}`),
+
+  // Get logged-in owner's bikes
+  getMyBikes: () => api.get('/api/bikes/my-bikes'),
+
+  // Update a bike
+  updateBike: (id, bikeData) => api.put(`/api/bikes/${id}`, bikeData),
+
+  // Delete a bike
+  deleteBike: (id) => api.delete(`/api/bikes/${id}`),
+
+  // Upload images for a bike
+  uploadImages: (id, formData) => api.post(`/api/bikes/${id}/images`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
