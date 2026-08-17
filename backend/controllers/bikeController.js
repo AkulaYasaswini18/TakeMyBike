@@ -169,3 +169,58 @@ exports.getAllApprovedBikes = async (req, res, next) => {
     next(err);
   }
 };
+
+// Search bikes with advanced filtering
+exports.searchBikes = async (req, res, next) => {
+  try {
+    const { location, startDate, endDate, minPrice, maxPrice, brand, type, minRating, sortBy } = req.query;
+    
+    let filter = { isApproved: true, isAvailable: true };
+    
+    // Basic filters
+    if (brand) filter.brand = { $regex: brand, $options: 'i' };
+    if (type) filter.type = type;
+    if (minPrice || maxPrice) {
+      filter.pricePerDay = {};
+      if (minPrice) filter.pricePerDay.$gte = Number(minPrice);
+      if (maxPrice) filter.pricePerDay.$lte = Number(maxPrice);
+    }
+    
+    let bikes = await Bike.find(filter)
+      .populate('owner', 'name phone rating');
+    
+    // Filter by owner rating if specified
+    if (minRating) {
+      bikes = bikes.filter(bike => (bike.owner?.rating || 0) >= Number(minRating));
+    }
+    
+    // Filter by date range (exclude bikes with overlapping confirmed bookings)
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      const bookedBikeIds = await Booking.find({
+        status: { $in: ['APPROVED', 'CASH_PAYMENT_CONFIRMED', 'ACTIVE', 'COMPLETED'] },
+        $or: [
+          { startDate: { $lt: end }, endDate: { $gt: start } }
+        ]
+      }).distinct('bike');
+      
+      bikes = bikes.filter(bike => !bookedBikeIds.includes(bike._id));
+    }
+    
+    // Apply sorting
+    if (sortBy === 'price_asc') {
+      bikes.sort((a, b) => a.pricePerDay - b.pricePerDay);
+    } else if (sortBy === 'price_desc') {
+      bikes.sort((a, b) => b.pricePerDay - a.pricePerDay);
+    } else if (sortBy === 'rating') {
+      bikes.sort((a, b) => (b.owner?.rating || 0) - (a.owner?.rating || 0));
+    }
+    
+    res.json({ bikes });
+  } catch (err) {
+    next(err);
+  }
+};
+

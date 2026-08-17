@@ -36,3 +36,9 @@ export async function listApprovedBikes(filters = {}) {
   const res = await api.get('/api/bikes', { params: filters })
   return res.data
 }
+
+export async function searchBikes(filters = {}) {
+  const res = await api.get('/api/bikes/search', { params: filters })
+  return res.data
+}
+

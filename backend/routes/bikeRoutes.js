@@ -9,7 +9,8 @@ const bikeController = require('../controllers/bikeController');
 router.get('/my-bikes', authenticate, authorize('owner'), bikeController.getMyBikes);
 router.post('/', authenticate, authorize('owner'), bikeController.createBike);
 
-// Public/Owner routes
+// Public routes - search must come before :id to avoid conflicts
+router.get('/search', bikeController.searchBikes);
 router.get('/', bikeController.getAllApprovedBikes);
 router.get('/:id', bikeController.getBikeById);
 router.put('/:id', authenticate, authorize('owner'), bikeController.updateBike);
