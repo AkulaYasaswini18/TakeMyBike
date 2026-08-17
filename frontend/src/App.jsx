@@ -8,6 +8,7 @@ import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import FindBikes from './pages/FindBikes'
+import BikeDetails from './pages/BikeDetails'
 import AddBike from './pages/AddBike'
 import MyBikes from './pages/MyBikes'
 import ProtectedRoute from './routes/ProtectedRoute'
@@ -40,6 +41,7 @@ export default function AppInner() {
         <Route path="/forgot-password" element={<ForgotPassword/>} />
         <Route path="/reset-password" element={<ResetPassword/>} />
         <Route path="/find-bikes" element={<FindBikes/>} />
+        <Route path="/bikes/:id" element={<BikeDetails/>} />
 
         {/* Owner routes */}
         <Route path="/add-bike" element={<ProtectedRoute roles={["owner"]}><AddBike/></ProtectedRoute>} />

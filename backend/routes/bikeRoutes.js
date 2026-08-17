@@ -12,6 +12,9 @@ router.post('/', authenticate, authorize('owner'), bikeController.createBike);
 // Public routes - search must come before :id to avoid conflicts
 router.get('/search', bikeController.searchBikes);
 router.get('/', bikeController.getAllApprovedBikes);
+
+// Dynamic routes - order matters
+router.get('/:id/availability', bikeController.getBikeAvailability);
 router.get('/:id', bikeController.getBikeById);
 router.put('/:id', authenticate, authorize('owner'), bikeController.updateBike);
 router.delete('/:id', authenticate, authorize('owner'), bikeController.deleteBike);

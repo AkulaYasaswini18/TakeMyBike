@@ -46,12 +46,59 @@ exports.getMyBikes = async (req, res, next) => {
   }
 };
 
-// Get a single bike by ID
+// Get a single bike by ID with details and reviews
 exports.getBikeById = async (req, res, next) => {
   try {
-    const bike = await Bike.findById(req.params.id).populate('owner', 'name email phone');
+    const Review = require('../models/Review');
+    const bike = await Bike.findById(req.params.id).populate('owner', 'name email phone rating');
     if (!bike) return res.status(404).json({ error: 'Bike not found' });
-    res.json({ bike });
+    
+    // Get reviews for this bike
+    const reviews = await Review.find({ booking: { $exists: true } })
+      .populate('fromUser', 'name')
+      .populate('booking', 'bike');
+    
+    const bikeReviews = reviews.filter(r => r.booking && r.booking.bike.toString() === bike._id.toString());
+    
+    // Calculate bike rating
+    let bikeRating = 0;
+    if (bikeReviews.length > 0) {
+      bikeRating = bikeReviews.reduce((sum, r) => sum + r.rating, 0) / bikeReviews.length;
+    }
+    
+    res.json({ 
+      bike, 
+      reviews: bikeReviews,
+      bikeRating: bikeRating.toFixed(1)
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Get bike availability (blocked dates and booked ranges)
+exports.getBikeAvailability = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const bike = await Bike.findById(id);
+    if (!bike) return res.status(404).json({ error: 'Bike not found' });
+    
+    // Get bookings for this bike
+    const bookings = await Booking.find({
+      bike: id,
+      status: { $in: ['APPROVED', 'CASH_PAYMENT_CONFIRMED', 'ACTIVE', 'COMPLETED'] }
+    });
+    
+    const bookedDates = [];
+    bookings.forEach(b => {
+      bookedDates.push({
+        start: b.startDate,
+        end: b.endDate,
+        type: 'booked'
+      });
+    });
+    
+    res.json({ bookedDates });
   } catch (err) {
     next(err);
   }

@@ -32,6 +32,11 @@ export async function getBikeById(id) {
   return res.data
 }
 
+export async function getBikeAvailability(id) {
+  const res = await api.get(`/api/bikes/${id}/availability`)
+  return res.data
+}
+
 export async function listApprovedBikes(filters = {}) {
   const res = await api.get('/api/bikes', { params: filters })
   return res.data
