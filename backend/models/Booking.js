@@ -15,6 +15,8 @@ const BookingSchema = new mongoose.Schema({
   },
   otp: { type: String },
   otpVerifiedAt: { type: Date },
+  rentalStartTime: { type: Date },
+  rentalEndTime: { type: Date },
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 

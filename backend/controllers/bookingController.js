@@ -2,6 +2,7 @@ const Booking = require('../models/Booking');
 const Bike = require('../models/Bike');
 const User = require('../models/User');
 const CashPayment = require('../models/CashPayment');
+const Inspection = require('../models/Inspection');
 
 // Create a booking request
 exports.createBooking = async (req, res, next) => {
@@ -230,4 +231,185 @@ exports.confirmCashPayment = async (req, res, next) => {
     next(err);
   }
 };
+
+// Owner generates 6-digit handover OTP (only if cash payment is RECEIVED)
+exports.generateOtp = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const booking = await Booking.findById(id);
+
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    // Owner only
+    if (booking.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Not authorized. Only the bike owner can generate the handover OTP.' });
+    }
+
+    // Must have CashPayment.status === 'RECEIVED'
+    const cashPayment = await CashPayment.findOne({ booking: booking._id });
+    if (!cashPayment || cashPayment.status !== 'RECEIVED') {
+      return res.status(400).json({ error: 'Cash payment must be confirmed as RECEIVED before generating handover OTP' });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    booking.otp = otp;
+    await booking.save();
+
+    const populated = await booking.populate(['renter', 'bike', 'owner']);
+    res.json({
+      message: 'Handover OTP generated successfully',
+      otp,
+      booking: populated
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Renter enters 6-digit OTP code to verify and start rental
+exports.verifyOtp = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { otp } = req.body;
+
+    if (!otp) {
+      return res.status(400).json({ error: 'OTP is required' });
+    }
+
+    const booking = await Booking.findById(id);
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    // Renter only
+    if (booking.renter.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Not authorized. Only the renter can verify the handover OTP.' });
+    }
+
+    if (!booking.otp || booking.otp.trim() !== otp.toString().trim()) {
+      return res.status(400).json({ error: 'Invalid OTP code. Please check with the bike owner.' });
+    }
+
+    booking.status = 'ACTIVE';
+    booking.otpVerifiedAt = new Date();
+    booking.rentalStartTime = new Date();
+    await booking.save();
+
+    const populated = await booking.populate(['renter', 'bike', 'owner']);
+    res.json({
+      message: 'OTP verified successfully. Rental is now ACTIVE!',
+      booking: populated
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Upload BEFORE or AFTER inspection photos (front, back, left, right, odometer, damage)
+exports.uploadInspection = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const phase = req.body.phase;
+
+    if (!phase || !['BEFORE', 'AFTER'].includes(phase.toUpperCase())) {
+      return res.status(400).json({ error: 'Inspection phase must be BEFORE or AFTER' });
+    }
+
+    const booking = await Booking.findById(id);
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    // Owner or renter only
+    const userId = req.user._id.toString();
+    const isOwner = booking.owner.toString() === userId;
+    const isRenter = booking.renter.toString() === userId;
+
+    if (!isOwner && !isRenter) {
+      return res.status(403).json({ error: 'Not authorized to upload inspection photos for this booking' });
+    }
+
+    const normalizedPhase = phase.toUpperCase();
+
+    // Collect image paths from multipart files or body urls
+    const images = {};
+    const angles = ['front', 'back', 'left', 'right', 'odometer', 'damage'];
+    
+    // Check if uploaded via multer (req.files)
+    if (req.files) {
+      angles.forEach(angle => {
+        if (req.files[angle] && req.files[angle][0]) {
+          images[angle] = `/uploads/${req.files[angle][0].filename}`;
+        }
+      });
+    }
+
+    // Also check req.body in case image URLs are sent or passed as json/strings
+    angles.forEach(angle => {
+      if (req.body[angle] && typeof req.body[angle] === 'string' && !images[angle]) {
+        images[angle] = req.body[angle];
+      }
+    });
+
+    let inspection = await Inspection.findOne({ booking: booking._id, phase: normalizedPhase });
+    if (!inspection) {
+      inspection = new Inspection({
+        booking: booking._id,
+        phase: normalizedPhase,
+        uploadedBy: req.user._id,
+        images
+      });
+    } else {
+      inspection.uploadedBy = req.user._id;
+      inspection.images = {
+        ...(inspection.images ? inspection.images.toObject() : {}),
+        ...images
+      };
+    }
+
+    await inspection.save();
+    const populated = await inspection.populate('uploadedBy', 'name email role');
+
+    res.status(201).json({
+      message: `${normalizedPhase} inspection photos uploaded successfully`,
+      inspection: populated
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Get all inspections for a booking
+exports.getBookingInspections = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const booking = await Booking.findById(id);
+
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    // Must be owner, renter, or admin
+    const userId = req.user._id.toString();
+    const isOwner = booking.owner.toString() === userId;
+    const isRenter = booking.renter.toString() === userId;
+    const isAdmin = req.user.role === 'admin';
+
+    if (!isOwner && !isRenter && !isAdmin) {
+      return res.status(403).json({ error: 'Not authorized to view inspections for this booking' });
+    }
+
+    const inspections = await Inspection.find({ booking: booking._id })
+      .populate('uploadedBy', 'name email role')
+      .sort({ createdAt: 1 });
+
+    res.json({ inspections });
+  } catch (err) {
+    next(err);
+  }
+};
+
 

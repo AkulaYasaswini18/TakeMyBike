@@ -35,3 +35,28 @@ export async function getBookingPayment(bookingId) {
   return res.data
 }
 
+export async function generateOtp(bookingId) {
+  const res = await api.post(`/api/bookings/${bookingId}/generate-otp`)
+  return res.data
+}
+
+export async function verifyOtp(bookingId, otp) {
+  const res = await api.post(`/api/bookings/${bookingId}/verify-otp`, { otp })
+  return res.data
+}
+
+export async function uploadInspection(bookingId, formData) {
+  const res = await api.post(`/api/bookings/${bookingId}/inspection`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+  return res.data
+}
+
+export async function getInspections(bookingId) {
+  const res = await api.get(`/api/bookings/${bookingId}/inspections`)
+  return res.data
+}
+
+
