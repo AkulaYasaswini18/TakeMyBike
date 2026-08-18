@@ -24,6 +24,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/bikes', require('./routes/bikeRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
+app.use('/api/deposits', require('./routes/depositRoutes'));
 
 // Error handler
 app.use(errorHandler);

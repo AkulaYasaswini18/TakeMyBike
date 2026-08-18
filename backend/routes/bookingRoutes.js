@@ -16,6 +16,20 @@ router.put('/:id/approve', authenticate, authorize('owner'), bookingController.a
 router.put('/:id/reject', authenticate, authorize('owner'), bookingController.rejectBooking);
 router.post('/:id/confirm-cash-payment', authenticate, authorize('owner'), bookingController.confirmCashPayment);
 router.post('/:id/generate-otp', authenticate, authorize('owner'), bookingController.generateOtp);
+router.post(
+  '/:id/return',
+  authenticate,
+  authorize('owner'),
+  upload.fields([
+    { name: 'front', maxCount: 1 },
+    { name: 'back', maxCount: 1 },
+    { name: 'left', maxCount: 1 },
+    { name: 'right', maxCount: 1 },
+    { name: 'odometer', maxCount: 1 },
+    { name: 'damage', maxCount: 1 }
+  ]),
+  bookingController.returnBike
+);
 
 // Shared / booking-level inspection routes (Renter & Owner)
 router.post(

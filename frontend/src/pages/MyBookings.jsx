@@ -3,6 +3,7 @@ import AuthContext from '../context/AuthContext'
 import * as bookingService from '../services/bookingService'
 import BookingTimeline from '../components/booking/BookingTimeline'
 import InspectionModal from '../components/booking/InspectionModal'
+import SecurityDepositBadge from '../components/booking/SecurityDepositBadge'
 
 const statusStyles = {
   PENDING: { bg: '#fff3cd', color: '#856404', label: '⧗ Approval Pending' },
@@ -13,13 +14,14 @@ const statusStyles = {
   ACTIVE: { bg: '#dcfce7', color: '#15803d', label: '🚴 Rental Active' },
   COMPLETED: { bg: '#f3f4f6', color: '#374151', label: '✓ Completed' },
   CANCELLED: { bg: '#fee2e2', color: '#b91c1c', label: '✗ Cancelled' },
-  DISPUTED: { bg: '#fef3c7', color: '#b45309', label: '⚠️ Disputed' }
+  DISPUTED: { bg: '#fee2e2', color: '#b91c1c', label: '⚠️ Disputed (Damage Flagged)' }
 }
 
 export default function MyBookings() {
   const { user } = useContext(AuthContext)
   const [bookings, setBookings] = useState([])
   const [inspectionsMap, setInspectionsMap] = useState({})
+  const [depositsMap, setDepositsMap] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [otpInputs, setOtpInputs] = useState({})
@@ -42,21 +44,28 @@ export default function MyBookings() {
       const list = data.bookings || []
       setBookings(list)
 
-      // Load inspections for active/confirmed bookings
+      // Load inspections and deposits for active/confirmed/completed bookings
       const insMap = {}
+      const depMap = {}
       await Promise.all(
         list.map(async (b) => {
-          if (['CASH_PAYMENT_CONFIRMED', 'ACTIVE', 'COMPLETED'].includes(b.status)) {
+          if (['CASH_PAYMENT_CONFIRMED', 'ACTIVE', 'COMPLETED', 'DISPUTED'].includes(b.status)) {
             try {
               const res = await bookingService.getInspections(b._id)
               insMap[b._id] = res.inspections || []
-            } catch (e) {
-              // silent ignore individual inspection load failure
-            }
+            } catch (e) {}
+
+            try {
+              const depRes = await bookingService.getBookingDeposit(b._id)
+              if (depRes.securityDeposit) {
+                depMap[b._id] = depRes.securityDeposit
+              }
+            } catch (e) {}
           }
         })
       )
       setInspectionsMap(insMap)
+      setDepositsMap(depMap)
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load bookings')
     } finally {
@@ -135,7 +144,7 @@ export default function MyBookings() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1 style={{ margin: '0 0 6px 0', fontSize: '28px', color: '#111827' }}>My Bookings</h1>
-          <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>Manage bookings, inspect bike condition, and verify handover OTPs</p>
+          <p style={{ margin: 0, color: '#6b7280', fontSize: '14px' }}>Manage bookings, inspect bike condition, verify OTPs, and track direct deposit refunds</p>
         </div>
       </div>
 
@@ -192,12 +201,13 @@ export default function MyBookings() {
             const securityDeposit = Number(booking.securityDeposit || 0)
             const totalCash = Number(booking.totalCash || (rentalAmount + securityDeposit))
             const inspections = inspectionsMap[booking._id] || []
+            const deposit = depositsMap[booking._id]
 
             return (
               <div
                 key={booking._id}
                 style={{
-                  border: '1px solid #e5e7eb',
+                  border: booking.status === 'DISPUTED' ? '2px solid #fca5a5' : '1px solid #e5e7eb',
                   borderRadius: '16px',
                   padding: '24px',
                   backgroundColor: '#ffffff',
@@ -265,7 +275,7 @@ export default function MyBookings() {
                         <strong style={{ color: '#1f2937' }}>{startDate} — {endDate}</strong>
                       </div>
                       <div>
-                        <span style={{ color: '#6b7280', display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rental</span>
+                        <span style={{ color: '#6b7280', display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rental Amount</span>
                         <strong style={{ color: '#1f2937' }}>₹{rentalAmount.toFixed(2)}</strong>
                       </div>
                       <div>
@@ -273,12 +283,12 @@ export default function MyBookings() {
                         <strong style={{ color: '#1f2937' }}>₹{securityDeposit.toFixed(2)}</strong>
                       </div>
                       <div>
-                        <span style={{ color: '#6b7280', display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Cash</span>
+                        <span style={{ color: '#6b7280', display: 'block', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Cash Due</span>
                         <strong style={{ color: '#047857', fontSize: '15px' }}>₹{totalCash.toFixed(2)}</strong>
                       </div>
                     </div>
 
-                    {/* Phase 7: Cash Payment Pending Notice */}
+                    {/* Cash Payment Pending Notice */}
                     {booking.status === 'CASH_PAYMENT_PENDING' && (
                       <div style={{
                         marginTop: '16px',
@@ -310,7 +320,7 @@ export default function MyBookings() {
                       </div>
                     )}
 
-                    {/* Phase 8: Cash Payment Confirmed -> OTP Entry & Before-Photos */}
+                    {/* OTP Entry Screen (CASH_PAYMENT_CONFIRMED) */}
                     {booking.status === 'CASH_PAYMENT_CONFIRMED' && (
                       <div style={{
                         marginTop: '16px',
@@ -330,7 +340,6 @@ export default function MyBookings() {
                           2. Ask the owner for the <strong>6-digit Handover OTP</strong> and enter it here to activate your rental.
                         </p>
 
-                        {/* OTP Input Form */}
                         <div style={{
                           backgroundColor: '#ffffff',
                           padding: '16px',
@@ -394,7 +403,7 @@ export default function MyBookings() {
                       </div>
                     )}
 
-                    {/* Phase 8: Active Rental Live Banner */}
+                    {/* Active Rental Tracker */}
                     {booking.status === 'ACTIVE' && (
                       <div style={{
                         marginTop: '16px',
@@ -414,7 +423,7 @@ export default function MyBookings() {
                             <strong style={{ fontSize: '16px', color: '#065f46' }}>Your Rental is Active!</strong>
                           </div>
                           <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#047857' }}>
-                            Started on: {booking.rentalStartTime ? new Date(booking.rentalStartTime).toLocaleString() : 'Now'}. Ride safely!
+                            Started on: {booking.rentalStartTime ? new Date(booking.rentalStartTime).toLocaleString() : 'Now'}. When ready to return, take return photos and meet the owner.
                           </p>
                         </div>
                         <button
@@ -435,8 +444,17 @@ export default function MyBookings() {
                       </div>
                     )}
 
-                    {/* Phase 8: Timeline Component */}
-                    {['CASH_PAYMENT_CONFIRMED', 'ACTIVE', 'COMPLETED'].includes(booking.status) && (
+                    {/* Phase 9: Security Deposit Status Tracker */}
+                    {booking.securityDeposit > 0 && ['CASH_PAYMENT_CONFIRMED', 'ACTIVE', 'COMPLETED', 'DISPUTED'].includes(booking.status) && (
+                      <SecurityDepositBadge
+                        deposit={deposit}
+                        amount={booking.securityDeposit}
+                        isOwner={false}
+                      />
+                    )}
+
+                    {/* Timeline */}
+                    {['CASH_PAYMENT_CONFIRMED', 'ACTIVE', 'COMPLETED', 'DISPUTED'].includes(booking.status) && (
                       <BookingTimeline
                         booking={booking}
                         inspections={inspections}
@@ -452,7 +470,7 @@ export default function MyBookings() {
                       color: '#64748b',
                       fontStyle: 'italic'
                     }}>
-                      📌 Persistent Note: BikeShare does not process or hold rental payments. All payments and handover inspections are conducted directly in person.
+                      📌 Persistent Note: BikeShare does not process or hold rental payments or security deposits. All transactions are handled directly between owner and renter.
                     </div>
                   </div>
                 </div>

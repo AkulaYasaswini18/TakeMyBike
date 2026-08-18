@@ -59,4 +59,24 @@ export async function getInspections(bookingId) {
   return res.data
 }
 
+export async function returnBike(bookingId, formData) {
+  const res = await api.post(`/api/bookings/${bookingId}/return`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+  return res.data
+}
+
+export async function refundDeposit(depositId, notes = '') {
+  const res = await api.put(`/api/deposits/${depositId}/refund`, { notes })
+  return res.data
+}
+
+export async function getBookingDeposit(bookingId) {
+  const res = await api.get(`/api/deposits/booking/${bookingId}`)
+  return res.data
+}
+
+
 

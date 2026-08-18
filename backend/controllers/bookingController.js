@@ -3,6 +3,8 @@ const Bike = require('../models/Bike');
 const User = require('../models/User');
 const CashPayment = require('../models/CashPayment');
 const Inspection = require('../models/Inspection');
+const SecurityDeposit = require('../models/SecurityDeposit');
+const Dispute = require('../models/Dispute');
 
 // Create a booking request
 exports.createBooking = async (req, res, next) => {
@@ -411,5 +413,127 @@ exports.getBookingInspections = async (req, res, next) => {
     next(err);
   }
 };
+
+// Owner processes bike return (after-rental inspection + damage flagging + deposit lifecycle)
+exports.returnBike = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { hasDamage, damageNotes, disputeReason } = req.body;
+
+    const booking = await Booking.findById(id).populate('bike');
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    // Owner only
+    if (booking.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Not authorized. Only the bike owner can process bike returns.' });
+    }
+
+    // Booking must be ACTIVE
+    if (!['ACTIVE', 'CASH_PAYMENT_CONFIRMED'].includes(booking.status)) {
+      return res.status(400).json({ error: `Cannot process return for booking with status ${booking.status}` });
+    }
+
+    // Handle AFTER inspection photos (files or URLs)
+    const angles = ['front', 'back', 'left', 'right', 'odometer', 'damage'];
+    const images = {};
+
+    if (req.files) {
+      angles.forEach(angle => {
+        if (req.files[angle] && req.files[angle][0]) {
+          images[angle] = `/uploads/${req.files[angle][0].filename}`;
+        }
+      });
+    }
+
+    angles.forEach(angle => {
+      if (req.body[angle] && typeof req.body[angle] === 'string' && !images[angle]) {
+        images[angle] = req.body[angle];
+      }
+    });
+
+    let afterInspection = await Inspection.findOne({ booking: booking._id, phase: 'AFTER' });
+
+    if (Object.keys(images).length > 0) {
+      if (!afterInspection) {
+        afterInspection = new Inspection({
+          booking: booking._id,
+          phase: 'AFTER',
+          uploadedBy: req.user._id,
+          images
+        });
+      } else {
+        afterInspection.images = {
+          ...(afterInspection.images ? (afterInspection.images.toObject ? afterInspection.images.toObject() : afterInspection.images) : {}),
+          ...images
+        };
+        afterInspection.uploadedBy = req.user._id;
+      }
+      await afterInspection.save();
+    }
+
+    // Verify that AFTER inspection exists and has at least one photo
+    if (!afterInspection || !afterInspection.images || Object.keys(afterInspection.images.toObject ? afterInspection.images.toObject() : afterInspection.images).length === 0) {
+      return res.status(400).json({ error: 'After-rental inspection photos are required before confirming bike return' });
+    }
+
+    // Find or create SecurityDeposit record
+    let deposit = await SecurityDeposit.findOne({ booking: booking._id });
+    if (!deposit) {
+      deposit = new SecurityDeposit({
+        booking: booking._id,
+        amount: booking.securityDeposit || 0,
+        status: 'HELD_BY_OWNER',
+        refundMethod: 'DIRECT_CASH'
+      });
+    }
+
+    let disputeRecord = null;
+    const isDamageFlagged = hasDamage === true || hasDamage === 'true' || Boolean(damageNotes && damageNotes.trim());
+
+    if (isDamageFlagged) {
+      // Mark as DISPUTED
+      booking.status = 'DISPUTED';
+      deposit.status = 'DISPUTED';
+      if (damageNotes) deposit.notes = damageNotes;
+      await deposit.save();
+
+      // Create Dispute record
+      disputeRecord = await Dispute.create({
+        booking: booking._id,
+        raisedBy: req.user._id,
+        reason: damageNotes || disputeReason || 'Damage reported during post-rental return inspection',
+        status: 'OPEN'
+      });
+    } else {
+      // Mark as COMPLETED
+      booking.status = 'COMPLETED';
+      booking.rentalEndTime = new Date();
+      deposit.status = 'REFUND_PENDING';
+      await deposit.save();
+
+      // Make bike available again for future bookings
+      if (booking.bike) {
+        await Bike.findByIdAndUpdate(booking.bike._id || booking.bike, { isAvailable: true });
+      }
+    }
+
+    await booking.save();
+    const populated = await booking.populate(['renter', 'bike', 'owner']);
+
+    res.json({
+      message: isDamageFlagged
+        ? 'Return processed with damage flagged. Booking and security deposit marked as DISPUTED.'
+        : 'Bike return completed successfully. Security deposit is now REFUND_PENDING for direct return.',
+      booking: populated,
+      securityDeposit: deposit,
+      dispute: disputeRecord
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 
 
