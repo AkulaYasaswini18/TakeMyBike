@@ -1,9 +1,12 @@
 import React, { useEffect, useState, useContext } from 'react'
 import AuthContext from '../context/AuthContext'
 import * as bookingService from '../services/bookingService'
+import * as reviewService from '../services/reviewService'
 import BookingTimeline from '../components/booking/BookingTimeline'
 import InspectionModal from '../components/booking/InspectionModal'
 import SecurityDepositBadge from '../components/booking/SecurityDepositBadge'
+import ReviewModal from '../components/reviews/ReviewModal'
+import StarRating from '../components/common/StarRating'
 
 const statusStyles = {
   PENDING: { bg: '#fff3cd', color: '#856404', label: '⧗ Approval Pending' },
@@ -22,6 +25,7 @@ export default function MyBookings() {
   const [bookings, setBookings] = useState([])
   const [inspectionsMap, setInspectionsMap] = useState({})
   const [depositsMap, setDepositsMap] = useState({})
+  const [reviewsMap, setReviewsMap] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [otpInputs, setOtpInputs] = useState({})
@@ -34,6 +38,10 @@ export default function MyBookings() {
   const [modalPhase, setModalPhase] = useState('BEFORE')
   const [isModalOpen, setIsModalOpen] = useState(false)
 
+  // Review modal state
+  const [reviewBooking, setReviewBooking] = useState(null)
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
+
   useEffect(() => {
     loadBookings()
   }, [])
@@ -44,9 +52,11 @@ export default function MyBookings() {
       const list = data.bookings || []
       setBookings(list)
 
-      // Load inspections and deposits for active/confirmed/completed bookings
+      // Load inspections, deposits, and reviews for relevant bookings
       const insMap = {}
       const depMap = {}
+      const revMap = {}
+
       await Promise.all(
         list.map(async (b) => {
           if (['CASH_PAYMENT_CONFIRMED', 'ACTIVE', 'COMPLETED', 'DISPUTED'].includes(b.status)) {
@@ -61,11 +71,22 @@ export default function MyBookings() {
                 depMap[b._id] = depRes.securityDeposit
               }
             } catch (e) {}
+
+            if (b.status === 'COMPLETED') {
+              try {
+                const revRes = await reviewService.getBookingReviews(b._id)
+                const myRev = (revRes.reviews || []).find(r => r.fromUser?._id === user?._id || r.fromUser === user?._id)
+                if (myRev) {
+                  revMap[b._id] = myRev
+                }
+              } catch (e) {}
+            }
           }
         })
       )
       setInspectionsMap(insMap)
       setDepositsMap(depMap)
+      setReviewsMap(revMap)
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to load bookings')
     } finally {
@@ -113,6 +134,18 @@ export default function MyBookings() {
       }
     })
     setSuccessMessage(`✓ ${newInspection.phase} inspection photos uploaded successfully!`)
+  }
+
+  const handleOpenReviewModal = (booking) => {
+    setReviewBooking(booking)
+    setIsReviewModalOpen(true)
+  }
+
+  const handleReviewSubmitted = (newReview) => {
+    if (reviewBooking) {
+      setReviewsMap(prev => ({ ...prev, [reviewBooking._id]: newReview }))
+      setSuccessMessage('⭐ Thank you! Your review and rating have been submitted successfully.')
+    }
   }
 
   if (!user || user.role !== 'renter') {
@@ -202,6 +235,7 @@ export default function MyBookings() {
             const totalCash = Number(booking.totalCash || (rentalAmount + securityDeposit))
             const inspections = inspectionsMap[booking._id] || []
             const deposit = depositsMap[booking._id]
+            const submittedReview = reviewsMap[booking._id]
 
             return (
               <div
@@ -444,6 +478,78 @@ export default function MyBookings() {
                       </div>
                     )}
 
+                    {/* Phase 10: Ratings & Reviews for Completed Bookings */}
+                    {booking.status === 'COMPLETED' && (
+                      <div style={{
+                        marginTop: '16px',
+                        padding: '16px 20px',
+                        backgroundColor: '#f8fafc',
+                        border: '1.5px solid #e2e8f0',
+                        borderRadius: '10px'
+                      }}>
+                        {submittedReview ? (
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                              <span style={{ fontSize: '14px', fontWeight: '700', color: '#166534' }}>
+                                ✓ You Rated this Rental:
+                              </span>
+                              <StarRating value={submittedReview.rating || submittedReview.overallRating || 5} readOnly size="sm" />
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '6px' }}>
+                              {submittedReview.bikeConditionRating && (
+                                <span style={{ fontSize: '11px', padding: '2px 8px', backgroundColor: '#f0fdf4', color: '#166534', borderRadius: '4px' }}>
+                                  Condition: {submittedReview.bikeConditionRating}/5
+                                </span>
+                              )}
+                              {submittedReview.ownerRating && (
+                                <span style={{ fontSize: '11px', padding: '2px 8px', backgroundColor: '#eff6ff', color: '#1e40af', borderRadius: '4px' }}>
+                                  Owner: {submittedReview.ownerRating}/5
+                                </span>
+                              )}
+                              {submittedReview.overallRating && (
+                                <span style={{ fontSize: '11px', padding: '2px 8px', backgroundColor: '#fef3c7', color: '#92400e', borderRadius: '4px' }}>
+                                  Overall: {submittedReview.overallRating}/5
+                                </span>
+                              )}
+                            </div>
+                            {submittedReview.comment && (
+                              <p style={{ margin: 0, fontSize: '13px', color: '#475569', fontStyle: 'italic' }}>
+                                "{submittedReview.comment}"
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                            <div>
+                              <strong style={{ fontSize: '14px', color: '#0f172a', display: 'block' }}>
+                                How was your ride?
+                              </strong>
+                              <span style={{ fontSize: '12px', color: '#64748b' }}>
+                                Rate the bike's condition and your experience with the owner.
+                              </span>
+                            </div>
+                            <button
+                              id={`rate-ride-btn-${booking._id}`}
+                              onClick={() => handleOpenReviewModal(booking)}
+                              style={{
+                                padding: '8px 18px',
+                                backgroundColor: '#f59e0b',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontWeight: '700',
+                                fontSize: '13px',
+                                boxShadow: '0 2px 4px rgba(245, 158, 11, 0.25)'
+                              }}
+                            >
+                              ⭐ Rate & Review Ride
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Phase 9: Security Deposit Status Tracker */}
                     {booking.securityDeposit > 0 && ['CASH_PAYMENT_CONFIRMED', 'ACTIVE', 'COMPLETED', 'DISPUTED'].includes(booking.status) && (
                       <SecurityDepositBadge
@@ -487,6 +593,18 @@ export default function MyBookings() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onUploadSuccess={handleInspectionUploaded}
+      />
+
+      {/* Renter Review Modal */}
+      <ReviewModal
+        booking={reviewBooking}
+        role="renter"
+        isOpen={isReviewModalOpen}
+        onClose={() => {
+          setIsReviewModalOpen(false)
+          setReviewBooking(null)
+        }}
+        onReviewSubmitted={handleReviewSubmitted}
       />
     </div>
   )

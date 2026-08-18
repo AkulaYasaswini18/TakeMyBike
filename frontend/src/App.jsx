@@ -14,6 +14,7 @@ import MyBikes from './pages/MyBikes'
 import Booking from './pages/Booking'
 import MyBookings from './pages/MyBookings'
 import RentalRequests from './pages/RentalRequests'
+import UserProfile from './pages/UserProfile'
 import ProtectedRoute from './routes/ProtectedRoute'
 
 function AppInner() {
@@ -85,6 +86,7 @@ function AppInner() {
           <Route path="/reset-password" element={<ResetPassword/>} />
           <Route path="/find-bikes" element={<FindBikes/>} />
           <Route path="/bikes/:id" element={<BikeDetails/>} />
+          <Route path="/user/:id" element={<UserProfile/>} />
 
           {/* Renter routes */}
           <Route path="/booking/:id" element={<ProtectedRoute roles={["renter"]}><Booking/></ProtectedRoute>} />

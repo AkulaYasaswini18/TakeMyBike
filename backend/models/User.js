@@ -9,6 +9,7 @@ const UserSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
   profileImage: { type: String },
   rating: { type: Number, min: 0, max: 5, default: 0 },
+  numReviews: { type: Number, default: 0 }
 }, { timestamps: true });
 
 UserSchema.index({ email: 1 }, { unique: true, sparse: true });

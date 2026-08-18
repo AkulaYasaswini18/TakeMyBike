@@ -18,7 +18,9 @@ const BikeSchema = new mongoose.Schema({
   condition: { type: String },
   isApproved: { type: Boolean, default: false },
   isAvailable: { type: Boolean, default: true },
-  images: [{ type: String }]
+  images: [{ type: String }],
+  rating: { type: Number, default: 0 },
+  numReviews: { type: Number, default: 0 }
 }, { timestamps: true });
 
 BikeSchema.index({ 'location': '2dsphere' });
