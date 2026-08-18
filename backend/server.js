@@ -23,6 +23,7 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().t
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/bikes', require('./routes/bikeRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
+app.use('/api/payments', require('./routes/paymentRoutes'));
 
 // Error handler
 app.use(errorHandler);

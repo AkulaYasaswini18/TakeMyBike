@@ -45,3 +45,19 @@ export const bikeAPI = {
     }
   })
 }
+
+// Booking API methods
+export const bookingAPI = {
+  createBooking: (bikeId, startDate, endDate) => api.post('/api/bookings', { bikeId, startDate, endDate }),
+  getMyBookings: () => api.get('/api/bookings/my-bookings'),
+  getOwnerBookings: () => api.get('/api/bookings/owner/requests'),
+  approveBooking: (id) => api.put(`/api/bookings/${id}/approve`),
+  rejectBooking: (id) => api.put(`/api/bookings/${id}/reject`),
+  confirmCashPayment: (id, notes) => api.post(`/api/bookings/${id}/confirm-cash-payment`, { notes })
+}
+
+// Payment API methods
+export const paymentAPI = {
+  getBookingPayment: (bookingId) => api.get(`/api/payments/booking/${bookingId}`)
+}
+

@@ -149,8 +149,8 @@ export default function Booking() {
             <p><strong>Model:</strong> {bike?.model}</p>
             <p><strong>Type:</strong> {bike?.type}</p>
             <p><strong>Owner:</strong> {bike?.owner?.name}</p>
-            <p><strong>Daily Rate:</strong> ${bike?.pricePerDay}/day</p>
-            <p><strong>Security Deposit:</strong> ${bike?.securityDeposit || 0}</p>
+            <p><strong>Daily Rate:</strong> ₹{bike?.pricePerDay}/day</p>
+            <p><strong>Security Deposit:</strong> ₹{bike?.securityDeposit || 0}</p>
           </div>
         </div>
 
@@ -226,11 +226,11 @@ export default function Booking() {
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span>Rental Amount:</span>
-                  <span>${rentalAmount.toFixed(2)}</span>
+                  <span>₹{rentalAmount.toFixed(2)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                   <span>Security Deposit:</span>
-                  <span>${bike?.securityDeposit || 0}</span>
+                  <span>₹{bike?.securityDeposit || 0}</span>
                 </div>
                 <div style={{
                   display: 'flex',
@@ -241,7 +241,7 @@ export default function Booking() {
                   fontSize: '16px'
                 }}>
                   <span>Total Cash Due at Handover:</span>
-                  <span>${totalCash.toFixed(2)}</span>
+                  <span>₹{totalCash.toFixed(2)}</span>
                 </div>
               </div>
             )}
@@ -254,7 +254,7 @@ export default function Booking() {
               marginBottom: '15px',
               color: '#004085'
             }}>
-              💡 Payment will be made in CASH at bike handover with the owner.
+              💡 Payment will be made in CASH directly to the bike owner at handover.
             </div>
 
             <button
@@ -277,7 +277,7 @@ export default function Booking() {
             </button>
 
             <p style={{ margin: '15px 0 0 0', fontSize: '12px', color: '#666', textAlign: 'center' }}>
-              The owner will accept or reject your booking request.
+              📌 Persistent Note: BikeShare does not process or hold rental payments.
             </p>
           </form>
         </div>

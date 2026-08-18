@@ -1,6 +1,7 @@
 const Booking = require('../models/Booking');
 const Bike = require('../models/Bike');
 const User = require('../models/User');
+const CashPayment = require('../models/CashPayment');
 
 // Create a booking request
 exports.createBooking = async (req, res, next) => {
@@ -170,3 +171,63 @@ exports.rejectBooking = async (req, res, next) => {
     next(err);
   }
 };
+
+// Owner confirms cash payment received
+exports.confirmCashPayment = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const booking = await Booking.findById(id);
+
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    // Owner only
+    if (booking.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Not authorized. Only the bike owner can confirm cash payment.' });
+    }
+
+    // Check invalid statuses
+    if (['REJECTED', 'CANCELLED'].includes(booking.status)) {
+      return res.status(400).json({ error: `Cannot confirm cash payment for a ${booking.status.toLowerCase()} booking` });
+    }
+
+    // Find or create CashPayment record
+    let payment = await CashPayment.findOne({ booking: booking._id });
+    if (!payment) {
+      payment = new CashPayment({
+        booking: booking._id,
+        amount: booking.totalCash,
+        paymentMethod: 'CASH',
+        status: 'RECEIVED',
+        confirmedBy: req.user._id,
+        confirmedAt: new Date(),
+        notes: req.body.notes || 'In-person cash payment received by owner'
+      });
+    } else {
+      payment.amount = booking.totalCash;
+      payment.paymentMethod = 'CASH';
+      payment.status = 'RECEIVED';
+      payment.confirmedBy = req.user._id;
+      payment.confirmedAt = new Date();
+      if (req.body.notes) {
+        payment.notes = req.body.notes;
+      }
+    }
+    await payment.save();
+
+    // Mark Booking status = CASH_PAYMENT_CONFIRMED
+    booking.status = 'CASH_PAYMENT_CONFIRMED';
+    await booking.save();
+
+    const populated = await booking.populate(['renter', 'bike', 'owner']);
+    res.json({
+      booking: populated,
+      payment,
+      message: 'Cash payment confirmed successfully'
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+

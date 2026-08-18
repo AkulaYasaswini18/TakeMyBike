@@ -12,5 +12,6 @@ router.get('/my-bookings', authenticate, authorize('renter'), bookingController.
 router.get('/owner/requests', authenticate, authorize('owner'), bookingController.getOwnerBookings);
 router.put('/:id/approve', authenticate, authorize('owner'), bookingController.approveBooking);
 router.put('/:id/reject', authenticate, authorize('owner'), bookingController.rejectBooking);
+router.post('/:id/confirm-cash-payment', authenticate, authorize('owner'), bookingController.confirmCashPayment);
 
 module.exports = router;

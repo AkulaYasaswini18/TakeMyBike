@@ -24,3 +24,14 @@ export async function rejectBooking(id) {
   const res = await api.put(`/api/bookings/${id}/reject`)
   return res.data
 }
+
+export async function confirmCashPayment(id, notes = '') {
+  const res = await api.post(`/api/bookings/${id}/confirm-cash-payment`, { notes })
+  return res.data
+}
+
+export async function getBookingPayment(bookingId) {
+  const res = await api.get(`/api/payments/booking/${bookingId}`)
+  return res.data
+}
+
