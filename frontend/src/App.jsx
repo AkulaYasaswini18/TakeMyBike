@@ -15,6 +15,7 @@ import Booking from './pages/Booking'
 import MyBookings from './pages/MyBookings'
 import RentalRequests from './pages/RentalRequests'
 import UserProfile from './pages/UserProfile'
+import NotificationBell from './components/notifications/NotificationBell'
 import ProtectedRoute from './routes/ProtectedRoute'
 
 function AppInner() {
@@ -58,6 +59,7 @@ function AppInner() {
                   </Link>
                 </>
               )}
+              <NotificationBell />
               <button
                 onClick={logout}
                 style={{

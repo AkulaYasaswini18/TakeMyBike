@@ -5,6 +5,7 @@ const CashPayment = require('../models/CashPayment');
 const Inspection = require('../models/Inspection');
 const SecurityDeposit = require('../models/SecurityDeposit');
 const Dispute = require('../models/Dispute');
+const { createNotification } = require('./notificationController');
 
 // Create a booking request
 exports.createBooking = async (req, res, next) => {
@@ -77,6 +78,16 @@ exports.createBooking = async (req, res, next) => {
     });
 
     const populated = await booking.populate(['renter', 'bike', 'owner']);
+
+    // Notify bike owner of new request
+    await createNotification(bike.owner, {
+      title: 'New Rental Request',
+      message: `You received a new booking request for ${bike.brand} ${bike.model} from ${req.user.name || 'a renter'}.`,
+      type: 'BOOKING_REQUESTED',
+      link: '/rental-requests',
+      booking: booking._id
+    });
+
     res.status(201).json({ booking: populated });
   } catch (err) {
     next(err);
@@ -141,6 +152,16 @@ exports.approveBooking = async (req, res, next) => {
     await booking.save();
 
     const populated = await booking.populate(['renter', 'bike', 'owner']);
+
+    // Notify renter that booking was approved
+    await createNotification(booking.renter, {
+      title: 'Booking Approved',
+      message: `Your booking for ${populated.bike?.brand || 'the bike'} ${populated.bike?.model || ''} was approved! Please pay ₹${booking.totalCash} in cash directly to the owner at handover.`,
+      type: 'BOOKING_APPROVED',
+      link: '/my-bookings',
+      booking: booking._id
+    });
+
     res.json({ booking: populated, message: 'Booking approved' });
   } catch (err) {
     next(err);
@@ -169,6 +190,16 @@ exports.rejectBooking = async (req, res, next) => {
     await booking.save();
 
     const populated = await booking.populate(['renter', 'bike', 'owner']);
+
+    // Notify renter that booking was rejected
+    await createNotification(booking.renter, {
+      title: 'Booking Rejected',
+      message: `Your booking request for ${populated.bike?.brand || 'the bike'} ${populated.bike?.model || ''} was rejected by the owner.`,
+      type: 'BOOKING_REJECTED',
+      link: '/my-bookings',
+      booking: booking._id
+    });
+
     res.json({ booking: populated, message: 'Booking rejected' });
   } catch (err) {
     next(err);
@@ -224,6 +255,16 @@ exports.confirmCashPayment = async (req, res, next) => {
     await booking.save();
 
     const populated = await booking.populate(['renter', 'bike', 'owner']);
+
+    // Notify renter that cash payment was received
+    await createNotification(booking.renter, {
+      title: 'Cash Payment Received',
+      message: `The owner confirmed receipt of ₹${booking.totalCash} cash payment. Ask the owner for your 6-digit Handover OTP to start the rental!`,
+      type: 'CASH_PAYMENT_CONFIRMED',
+      link: '/my-bookings',
+      booking: booking._id
+    });
+
     res.json({
       booking: populated,
       payment,
@@ -301,6 +342,23 @@ exports.verifyOtp = async (req, res, next) => {
     await booking.save();
 
     const populated = await booking.populate(['renter', 'bike', 'owner']);
+
+    // Notify owner and renter that rental is now ACTIVE
+    await createNotification(booking.owner, {
+      title: 'Rental Active',
+      message: `Handover OTP verified! Rental for ${populated.bike?.brand || 'your bike'} ${populated.bike?.model || ''} is now ACTIVE.`,
+      type: 'RENTAL_ACTIVE',
+      link: '/rental-requests',
+      booking: booking._id
+    });
+    await createNotification(booking.renter, {
+      title: 'Rental Active',
+      message: `OTP verified! Your rental for ${populated.bike?.brand || 'the bike'} ${populated.bike?.model || ''} is now active. Enjoy your ride!`,
+      type: 'RENTAL_ACTIVE',
+      link: '/my-bookings',
+      booking: booking._id
+    });
+
     res.json({
       message: 'OTP verified successfully. Rental is now ACTIVE!',
       booking: populated
@@ -521,6 +579,26 @@ exports.returnBike = async (req, res, next) => {
 
     await booking.save();
     const populated = await booking.populate(['renter', 'bike', 'owner']);
+
+    if (isDamageFlagged) {
+      // Notify renter of dispute
+      await createNotification(booking.renter, {
+        title: 'Damage Flagged / Dispute Opened',
+        message: `Damage was reported during the return inspection for ${populated.bike?.brand || 'the bike'}. A dispute has been opened and the deposit is withheld.`,
+        type: 'DISPUTE_CREATED',
+        link: '/my-bookings',
+        booking: booking._id
+      });
+    } else {
+      // Notify renter of completed return and pending direct refund
+      await createNotification(booking.renter, {
+        title: 'Bike Return Completed',
+        message: `Your return for ${populated.bike?.brand || 'the bike'} ${populated.bike?.model || ''} was confirmed! The owner will hand over your ₹${deposit.amount} security deposit directly in cash.`,
+        type: 'RETURN_COMPLETED',
+        link: '/my-bookings',
+        booking: booking._id
+      });
+    }
 
     res.json({
       message: isDamageFlagged

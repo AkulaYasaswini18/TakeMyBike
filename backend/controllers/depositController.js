@@ -1,5 +1,6 @@
 const SecurityDeposit = require('../models/SecurityDeposit');
 const Booking = require('../models/Booking');
+const { createNotification } = require('./notificationController');
 
 // Get security deposit for a booking
 exports.getDepositByBooking = async (req, res, next) => {
@@ -74,6 +75,17 @@ exports.refundDeposit = async (req, res, next) => {
     }
 
     await deposit.save();
+
+    // Notify renter that deposit has been refunded
+    if (booking.renter) {
+      await createNotification(booking.renter, {
+        title: 'Security Deposit Refunded',
+        message: `The owner confirmed direct cash return of your ₹${deposit.amount} security deposit.`,
+        type: 'DEPOSIT_REFUNDED',
+        link: '/my-bookings',
+        booking: booking._id
+      });
+    }
 
     res.json({
       message: 'Security deposit marked as refunded directly by owner',

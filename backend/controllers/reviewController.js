@@ -2,6 +2,7 @@ const Review = require('../models/Review');
 const Booking = require('../models/Booking');
 const Bike = require('../models/Bike');
 const User = require('../models/User');
+const { createNotification } = require('./notificationController');
 
 // Helper to recalculate and store average ratings on Bike and User
 async function recalculateAverages(bikeId, toUserId, isRenter) {
@@ -133,6 +134,15 @@ exports.createReview = async (req, res, next) => {
       { path: 'toUser', select: 'name profileImage role' },
       { path: 'bike', select: 'brand model' }
     ]);
+
+    // Notify target user of review
+    await createNotification(reviewData.toUser, {
+      title: 'New Review Received',
+      message: `${req.user.name || 'A user'} left you a ${reviewData.rating}-star review!`,
+      type: 'REVIEW_RECEIVED',
+      link: isRenter ? '/rental-requests' : `/user/${reviewData.toUser}`,
+      booking: booking._id
+    });
 
     res.status(201).json({
       message: 'Review submitted successfully',
