@@ -2,7 +2,7 @@ const Bike = require('../models/Bike');
 const Booking = require('../models/Booking');
 const path = require('path');
 const fs = require('fs');
-const r=0;
+
 // Create a bike listing
 exports.createBike = async (req, res, next) => {
   try {

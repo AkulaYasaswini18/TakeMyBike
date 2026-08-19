@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import * as bookingService from '../../services/bookingService'
+import { getErrorMessage } from '../../services/api'
 
 const anglesConfig = [
   { id: 'front', label: 'Front View 📸' },
@@ -94,7 +95,7 @@ export default function ReturnModal({
       }
       onClose()
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to process bike return')
+      setError(getErrorMessage(err, 'Failed to process bike return or create the dispute. Please try again.'))
     } finally {
       setLoading(false)
     }

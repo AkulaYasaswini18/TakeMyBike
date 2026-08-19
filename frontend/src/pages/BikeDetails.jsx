@@ -7,11 +7,15 @@ import ImageGallery from '../components/bikes/ImageGallery'
 import ReviewList from '../components/bikes/ReviewList'
 import StarRating from '../components/common/StarRating'
 import ReportModal from '../components/common/ReportModal'
+import LoadingSpinner from '../components/common/LoadingSpinner'
+import ErrorMessage from '../components/common/ErrorMessage'
+import { useToast } from '../context/ToastContext'
 
 export default function BikeDetails() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useContext(AuthContext)
+  const toast = useToast()
 
   const [bike, setBike] = useState(null)
   const [reviews, setReviews] = useState([])
@@ -63,31 +67,27 @@ export default function BikeDetails() {
       return
     }
     if (!startDate || !endDate) {
-      alert('Please select both start and end dates')
+      toast.warning('Please select both start and end rental dates before booking.')
       return
     }
     navigate(`/booking/${id}?startDate=${startDate}&endDate=${endDate}`)
   }
 
   if (loading) {
-    return (
-      <div style={{ padding: '60px 20px', textAlign: 'center', maxWidth: '1200px', margin: '0 auto' }}>
-        <p style={{ fontSize: '18px', color: '#4b5563' }}>Loading bike details...</p>
-      </div>
-    )
+    return <LoadingSpinner fullPage message="Loading motorcycle details & availability..." />
   }
 
   if (error || !bike) {
     return (
-      <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{
-          padding: '20px',
-          backgroundColor: '#fee2e2',
-          color: '#b91c1c',
-          borderRadius: '8px',
-          border: '1px solid #fca5a5'
-        }}>
-          Error: {error || 'Bike not found'}
+      <div style={{ padding: '40px 20px', maxWidth: '800px', margin: '0 auto' }}>
+        <ErrorMessage
+          scenario="BIKE_UNAVAILABLE"
+          message={error || 'Motorcycle listing not found or has been deactivated.'}
+        />
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <Link to="/find-bikes" className="btn btn-primary">
+            🔍 Browse Available Bikes
+          </Link>
         </div>
       </div>
     )
@@ -97,7 +97,7 @@ export default function BikeDetails() {
 
   return (
     <div style={{ padding: '30px 20px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '36px', marginBottom: '40px' }}>
+      <div className="bike-details-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '36px', marginBottom: '40px' }}>
         {/* Left Column: Images and Info */}
         <div>
           <ImageGallery images={bike.images} />
@@ -345,6 +345,15 @@ export default function BikeDetails() {
         targetId={bike._id}
         targetName={`${bike.brand} ${bike.model}`}
       />
+
+      <style>{`
+        @media (max-width: 820px) {
+          .bike-details-grid {
+            grid-template-columns: 1fr !important;
+            gap: 24px !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }

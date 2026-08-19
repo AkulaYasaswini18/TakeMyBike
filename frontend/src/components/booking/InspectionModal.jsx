@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import * as bookingService from '../../services/bookingService'
+import { getErrorMessage } from '../../services/api'
 
 const anglesConfig = [
   { id: 'front', label: 'Front View 📸', desc: 'Full frontal photo of the bike' },
@@ -76,7 +77,7 @@ export default function InspectionModal({ bookingId, phase, isOpen, onClose, onU
       }
       onClose()
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to upload inspection photos')
+      setError(getErrorMessage(err, 'Failed to upload inspection photos. Please try again.'))
     } finally {
       setLoading(false)
     }

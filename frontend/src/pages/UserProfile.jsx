@@ -4,6 +4,9 @@ import AuthContext from '../context/AuthContext'
 import * as reviewService from '../services/reviewService'
 import StarRating from '../components/common/StarRating'
 import ReportModal from '../components/common/ReportModal'
+import LoadingSpinner from '../components/common/LoadingSpinner'
+import ErrorMessage from '../components/common/ErrorMessage'
+import EmptyState from '../components/common/EmptyState'
 
 export default function UserProfile() {
   const { id } = useParams()
@@ -34,24 +37,20 @@ export default function UserProfile() {
   }
 
   if (loading) {
-    return (
-      <div style={{ padding: '60px 20px', textAlign: 'center', maxWidth: '900px', margin: '0 auto' }}>
-        <p style={{ fontSize: '18px', color: '#4b5563' }}>Loading profile...</p>
-      </div>
-    )
+    return <LoadingSpinner fullPage message="Loading member profile & reviews..." />
   }
 
   if (error || !profileUser) {
     return (
-      <div style={{ padding: '40px 20px', maxWidth: '900px', margin: '0 auto' }}>
-        <div style={{
-          padding: '20px',
-          backgroundColor: '#fee2e2',
-          color: '#b91c1c',
-          borderRadius: '8px',
-          border: '1px solid #fca5a5'
-        }}>
-          {error || 'User not found'}
+      <div style={{ padding: '40px 20px', maxWidth: '800px', margin: '0 auto' }}>
+        <ErrorMessage
+          title="Profile Notice"
+          message={error || 'User profile could not be found.'}
+        />
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <Link to="/" className="btn btn-primary">
+            ← Back to Home
+          </Link>
         </div>
       </div>
     )
@@ -150,16 +149,11 @@ export default function UserProfile() {
         </h2>
 
         {reviews.length === 0 ? (
-          <div style={{
-            padding: '40px 20px',
-            backgroundColor: '#f8fafc',
-            borderRadius: '12px',
-            textAlign: 'center',
-            border: '1px dashed #cbd5e1',
-            color: '#64748b'
-          }}>
-            <p style={{ margin: 0, fontSize: '15px' }}>No reviews received yet.</p>
-          </div>
+          <EmptyState
+            icon="💬"
+            title="No reviews received yet"
+            description="This user has not received any community reviews on BikeShare yet."
+          />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {reviews.map((review, idx) => {

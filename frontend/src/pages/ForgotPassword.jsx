@@ -1,23 +1,83 @@
 import React, { useState } from 'react'
-import { forgotPassword } from '../services/authService'
+import { Link } from 'react-router-dom'
+import * as authService from '../services/authService'
+import { useToast } from '../context/ToastContext'
+import ErrorMessage from '../components/common/ErrorMessage'
+import './Auth.css'
 
-export default function ForgotPassword(){
+export default function ForgotPassword() {
   const [email, setEmail] = useState('')
-  const [msg, setMsg] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [sent, setSent] = useState(false)
+  const [error, setError] = useState(null)
+  const toast = useToast()
 
-  const submit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    try{ await forgotPassword(email); setMsg('If that account exists, an email was sent.') }catch(e){ setMsg('Error') }
+    setLoading(true)
+    setError(null)
+
+    try {
+      await authService.forgotPassword(email)
+      setSent(true)
+      toast.success('Password reset link sent to your email.', 'Check Your Inbox')
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to send reset link. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
-    <div>
-      <h2>Forgot Password</h2>
-      <form onSubmit={submit}>
-        <input placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} />
-        <button type="submit">Send reset link</button>
-      </form>
-      {msg && <p>{msg}</p>}
+    <div className="auth-page-wrapper">
+      <div className="auth-card">
+        <div className="auth-header">
+          <span className="auth-logo">🔑</span>
+          <h1 className="auth-title">Reset Password</h1>
+          <p className="auth-subtitle">Enter your registered email to receive a password reset link</p>
+        </div>
+
+        {error && <ErrorMessage message={error} compact />}
+
+        {sent ? (
+          <div style={{
+            background: '#dcfce7',
+            border: '1px solid #86efac',
+            color: '#15803d',
+            padding: '16px',
+            borderRadius: '10px',
+            textAlign: 'center',
+            fontSize: '14px',
+            lineHeight: 1.5
+          }}>
+            ✓ If an account with <strong>{email}</strong> exists, we've sent password reset instructions to your inbox.
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="form-group">
+              <label className="form-label">Registered Email</label>
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="form-input"
+                required
+              />
+            </div>
+
+            <button type="submit" disabled={loading} className="auth-submit-btn">
+              {loading ? 'Sending link...' : 'Send Reset Link'}
+            </button>
+          </form>
+        )}
+
+        <div className="auth-footer-links">
+          <Link to="/login" className="auth-link">
+            ← Back to Login
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }

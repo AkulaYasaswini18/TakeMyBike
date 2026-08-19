@@ -1,12 +1,16 @@
 import React, { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import * as bikeService from '../services/bikeService'
+import { useToast } from '../context/ToastContext'
+import ErrorMessage from '../components/common/ErrorMessage'
+import { getErrorMessage } from '../services/api'
 import './AddBike.css'
 
 export default function AddBike() {
   const navigate = useNavigate()
   const { id: bikeId } = useParams()
   const isEdit = !!bikeId
+  const toast = useToast()
 
   const [form, setForm] = useState({
     brand: '',
@@ -48,11 +52,11 @@ export default function AddBike() {
     let validFiles = []
     for (let file of files) {
       if (!file.type.startsWith('image/')) {
-        setMsg(`${file.name} is not an image`)
+        toast.error(`${file.name} is not an image file.`, 'Invalid Format')
         return
       }
       if (file.size > 5 * 1024 * 1024) {
-        setMsg(`${file.name} exceeds 5MB limit`)
+        toast.error(`${file.name} exceeds the 5MB size limit.`, 'File Too Large')
         return
       }
       validFiles.push(file)
@@ -83,7 +87,7 @@ export default function AddBike() {
     try {
       // Validate required fields
       if (!form.brand || !form.model || !form.type || !form.year || !form.registrationNumber || !form.pricePerDay || !form.condition) {
-        setMsg('Please fill in all required fields')
+        setMsg('Please fill in all required fields marked with *')
         setLoading(false)
         return
       }
@@ -102,10 +106,12 @@ export default function AddBike() {
         await bikeService.uploadImages(result.bike?._id || result._id, formData)
       }
 
-      setMsg('Bike saved successfully! Redirecting...')
-      setTimeout(() => navigate('/my-bikes'), 1500)
+      toast.success('Motorcycle saved successfully! Waiting for admin review.', 'Listing Created')
+      navigate('/my-bikes')
     } catch (err) {
-      setMsg(`Error: ${err.response?.data?.error || err.message}`)
+      const errMsg = getErrorMessage(err, 'Failed to save bike listing. Please try again.')
+      setMsg(errMsg)
+      toast.error(errMsg, 'Save Error')
     } finally {
       setLoading(false)
     }
@@ -114,12 +120,13 @@ export default function AddBike() {
   return (
     <div className="add-bike-container">
       <div className="add-bike-card">
-        <h1>{isEdit ? 'Edit Bike' : 'Add New Bike'}</h1>
+        <h1>{isEdit ? 'Edit Motorcycle' : 'List a Motorcycle'}</h1>
         
         {msg && (
-          <div className={msg.includes('Error') ? 'error-message' : 'success-message'}>
-            {msg}
-          </div>
+          <ErrorMessage
+            message={msg}
+            compact
+          />
         )}
 
         <form onSubmit={handleSubmit}>

@@ -8,6 +8,10 @@ import ReturnModal from '../components/booking/ReturnModal'
 import SecurityDepositBadge from '../components/booking/SecurityDepositBadge'
 import ReviewModal from '../components/reviews/ReviewModal'
 import StarRating from '../components/common/StarRating'
+import LoadingSpinner from '../components/common/LoadingSpinner'
+import EmptyState from '../components/common/EmptyState'
+import ErrorMessage from '../components/common/ErrorMessage'
+import { getErrorMessage } from '../services/api'
 
 const statusStyles = {
   PENDING: { bg: '#fff3cd', color: '#856404', label: '⧗ Approval Pending' },
@@ -100,7 +104,7 @@ export default function RentalRequests() {
       setDepositsMap(depMap)
       setReviewsMap(revMap)
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to load requests')
+      setError(getErrorMessage(err, 'Failed to load requests. Please try again.'))
     } finally {
       setLoading(false)
     }
@@ -117,7 +121,7 @@ export default function RentalRequests() {
       ))
       setSuccessMsg('Booking approved! Waiting for cash payment handover from renter.')
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to approve booking')
+      setError(getErrorMessage(err, 'Failed to approve booking. Please try again.'))
     } finally {
       setActionLoading(null)
     }
@@ -136,7 +140,7 @@ export default function RentalRequests() {
       ))
       setSuccessMsg('Booking rejected.')
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to reject booking')
+      setError(getErrorMessage(err, 'Failed to reject booking. Please try again.'))
     } finally {
       setActionLoading(null)
     }
@@ -155,7 +159,7 @@ export default function RentalRequests() {
       ))
       setSuccessMsg('Cash payment confirmed successfully! You can now generate the Handover OTP.')
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to confirm cash payment')
+      setError(getErrorMessage(err, 'Cash payment has not been confirmed. Please verify the handover.'))
     } finally {
       setActionLoading(null)
     }
@@ -171,7 +175,7 @@ export default function RentalRequests() {
       setBookings(prev => prev.map(b => b._id === bookingId ? { ...b, otp: res.otp } : b))
       setSuccessMsg(`Handover OTP generated: ${res.otp}. Please share this code in person with the renter at bike handover.`)
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to generate OTP')
+      setError(getErrorMessage(err, 'Unable to generate a valid handover OTP. Please try again.'))
     } finally {
       setActionLoading(null)
     }
@@ -192,7 +196,7 @@ export default function RentalRequests() {
       }))
       setSuccessMsg('✓ Security deposit marked as refunded directly by owner in cash!')
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to mark security deposit as refunded')
+      setError(getErrorMessage(err, 'Failed to mark the security deposit as refunded.'))
     } finally {
       setRefundLoading(null)
     }
@@ -246,26 +250,17 @@ export default function RentalRequests() {
 
   if (!user || user.role !== 'owner') {
     return (
-      <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{
-          padding: '20px',
-          backgroundColor: '#fee2e2',
-          color: '#b91c1c',
-          borderRadius: '8px',
-          fontWeight: '500'
-        }}>
-          Only bike owners can view rental requests.
-        </div>
+      <div style={{ padding: '40px 20px', maxWidth: '800px', margin: '0 auto' }}>
+        <ErrorMessage
+          scenario="UNAUTHORIZED"
+          message="Only registered motorcycle owners can manage rental requests."
+        />
       </div>
     )
   }
 
   if (loading) {
-    return (
-      <div style={{ padding: '60px 20px', textAlign: 'center', maxWidth: '1200px', margin: '0 auto' }}>
-        <p style={{ fontSize: '18px', color: '#4b5563', fontWeight: '500' }}>Loading rental requests...</p>
-      </div>
-    )
+    return <LoadingSpinner fullPage message="Loading rental requests..." />
   }
 
   const pendingBookings = bookings.filter(b => b.status === 'PENDING')
@@ -297,32 +292,17 @@ export default function RentalRequests() {
       )}
 
       {error && (
-        <div style={{
-          padding: '14px 18px',
-          backgroundColor: '#fee2e2',
-          color: '#b91c1c',
-          borderRadius: '8px',
-          marginBottom: '20px',
-          border: '1px solid #fca5a5',
-          fontSize: '14px'
-        }}>
-          {error}
-        </div>
+        <ErrorMessage message={error} compact />
       )}
 
       {bookings.length === 0 ? (
-        <div style={{
-          padding: '60px 20px',
-          textAlign: 'center',
-          backgroundColor: '#f9fafb',
-          borderRadius: '12px',
-          border: '1px dashed #d1d5db',
-          color: '#6b7280'
-        }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}>📋</div>
-          <h3 style={{ margin: '0 0 8px 0', color: '#374151' }}>No rental requests yet</h3>
-          <p style={{ fontSize: '14px', margin: 0 }}>Incoming requests for your bikes will appear here.</p>
-        </div>
+        <EmptyState
+          icon="📋"
+          title="No rental requests yet"
+          description="Incoming booking requests for your listed motorcycles will appear here."
+          actionText="+ Add Another Bike"
+          actionLink="/add-bike"
+        />
       ) : (
         <>
           {/* Section 1: Active Rentals (ACTIVE) - Ready for Return */}

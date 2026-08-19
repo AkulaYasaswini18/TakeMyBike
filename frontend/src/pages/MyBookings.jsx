@@ -7,6 +7,10 @@ import InspectionModal from '../components/booking/InspectionModal'
 import SecurityDepositBadge from '../components/booking/SecurityDepositBadge'
 import ReviewModal from '../components/reviews/ReviewModal'
 import StarRating from '../components/common/StarRating'
+import LoadingSpinner from '../components/common/LoadingSpinner'
+import EmptyState from '../components/common/EmptyState'
+import ErrorMessage from '../components/common/ErrorMessage'
+import { useToast } from '../context/ToastContext'
 
 const statusStyles = {
   PENDING: { bg: '#fff3cd', color: '#856404', label: '⧗ Approval Pending' },
@@ -150,26 +154,17 @@ export default function MyBookings() {
 
   if (!user || user.role !== 'renter') {
     return (
-      <div style={{ padding: '40px', maxWidth: '1000px', margin: '0 auto' }}>
-        <div style={{
-          padding: '20px',
-          backgroundColor: '#fee2e2',
-          color: '#b91c1c',
-          borderRadius: '8px',
-          fontWeight: '500'
-        }}>
-          Only renters can view their bookings.
-        </div>
+      <div style={{ padding: '40px 20px', maxWidth: '800px', margin: '0 auto' }}>
+        <ErrorMessage
+          scenario="UNAUTHORIZED"
+          message="Only registered renters can view their booking history."
+        />
       </div>
     )
   }
 
   if (loading) {
-    return (
-      <div style={{ padding: '60px 20px', textAlign: 'center', maxWidth: '1000px', margin: '0 auto' }}>
-        <div style={{ fontSize: '18px', color: '#4b5563', fontWeight: '500' }}>Loading your bookings...</div>
-      </div>
-    )
+    return <LoadingSpinner fullPage message="Loading your bookings..." />
   }
 
   return (
@@ -197,32 +192,17 @@ export default function MyBookings() {
       )}
 
       {error && (
-        <div style={{
-          padding: '16px',
-          backgroundColor: '#fee2e2',
-          color: '#b91c1c',
-          borderRadius: '8px',
-          marginBottom: '24px',
-          border: '1px solid #fca5a5',
-          fontSize: '14px'
-        }}>
-          {error}
-        </div>
+        <ErrorMessage message={error} compact />
       )}
 
       {bookings.length === 0 ? (
-        <div style={{
-          padding: '60px 20px',
-          textAlign: 'center',
-          backgroundColor: '#f9fafb',
-          borderRadius: '12px',
-          border: '1px dashed #d1d5db',
-          color: '#6b7280'
-        }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}>🚲</div>
-          <h3 style={{ margin: '0 0 8px 0', color: '#374151' }}>No bookings yet</h3>
-          <p style={{ fontSize: '14px', margin: 0 }}>Browse available bikes and make your first rental request.</p>
-        </div>
+        <EmptyState
+          icon="🚲"
+          title="No bookings yet"
+          description="Browse available motorcycles in your city and make your first rental request!"
+          actionText="🔍 Find Motorcycles"
+          actionLink="/find-bikes"
+        />
       ) : (
         <div style={{ display: 'grid', gap: '28px' }}>
           {bookings.map(booking => {

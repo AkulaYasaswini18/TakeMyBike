@@ -2,11 +2,16 @@ import React, { useEffect, useState, useContext } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AuthContext from '../context/AuthContext'
 import * as bikeService from '../services/bikeService'
+import LoadingSpinner from '../components/common/LoadingSpinner'
+import EmptyState from '../components/common/EmptyState'
+import ErrorMessage from '../components/common/ErrorMessage'
+import { useToast } from '../context/ToastContext'
 import './MyBikes.css'
 
 export default function MyBikes() {
   const { user } = useContext(AuthContext)
   const navigate = useNavigate()
+  const toast = useToast()
   const [bikes, setBikes] = useState([])
   const [loading, setLoading] = useState(true)
   const [msg, setMsg] = useState(null)
@@ -31,9 +36,9 @@ export default function MyBikes() {
     try {
       await bikeService.deleteBike(bikeId)
       setBikes(bikes.filter(b => b._id !== bikeId))
-      setMsg('Bike deleted successfully')
+      toast.success('Motorcycle listing deleted successfully.', 'Deleted')
     } catch (err) {
-      setMsg(`Error deleting bike: ${err.message}`)
+      toast.error(err.response?.data?.error || err.message, 'Delete Failed')
     }
   }
 
@@ -48,29 +53,23 @@ export default function MyBikes() {
 
   if (!user || user.role !== 'owner') {
     return (
-      <div className="my-bikes-container">
-        <div className="empty-state">
-          <p>Only bike owners can access this page.</p>
-          <Link to="/" style={{ marginTop: '15px', display: 'inline-block', padding: '10px 20px', background: '#007bff', color: 'white', textDecoration: 'none', borderRadius: '4px' }}>
-            Back to Home
-          </Link>
-        </div>
+      <div className="my-bikes-container" style={{ maxWidth: '800px' }}>
+        <ErrorMessage
+          scenario="UNAUTHORIZED"
+          message="Only registered motorcycle owners can access the bike management portal."
+        />
       </div>
     )
   }
 
   if (loading) {
-    return (
-      <div className="my-bikes-container">
-        <div className="loading-spinner">Loading your bikes...</div>
-      </div>
-    )
+    return <LoadingSpinner fullPage message="Loading your listed motorcycles..." />
   }
 
   return (
     <div className="my-bikes-container">
       <div className="my-bikes-header">
-        <h2>My Bikes</h2>
+        <h2>My Bikes ({bikes.length})</h2>
         <Link to="/add-bike" className="add-bike-button">
           + Add New Bike
         </Link>
@@ -83,12 +82,13 @@ export default function MyBikes() {
       )}
 
       {bikes.length === 0 ? (
-        <div className="empty-state">
-          <p>You haven't added any bikes yet.</p>
-          <Link to="/add-bike" className="add-bike-button">
-            + Add Your First Bike
-          </Link>
-        </div>
+        <EmptyState
+          icon="🏍️"
+          title="No motorcycles listed yet"
+          description="List your motorcycle on BikeShare to start earning with direct cash payments!"
+          actionText="+ Add Your First Bike"
+          actionLink="/add-bike"
+        />
       ) : (
         <div className="bikes-grid">
           {bikes.map(bike => (
