@@ -1,8 +1,16 @@
-const mongoose = require('mongoose');
+const seedAdmin = require('./seedAdmin');
 
 async function seed() {
-  console.log('Seed script placeholder');
-  // implement seeding later
+  console.log('--- Starting BikeShare Seed ---');
+  await seedAdmin();
+  console.log('--- Seeding finished successfully ---');
 }
 
-seed().then(() => process.exit(0));
+if (require.main === module) {
+  seed().then(() => process.exit(0)).catch(err => {
+    console.error('Seed failed:', err);
+    process.exit(1);
+  });
+}
+
+module.exports = seed;

@@ -6,6 +6,7 @@ import * as reviewService from '../services/reviewService'
 import ImageGallery from '../components/bikes/ImageGallery'
 import ReviewList from '../components/bikes/ReviewList'
 import StarRating from '../components/common/StarRating'
+import ReportModal from '../components/common/ReportModal'
 
 export default function BikeDetails() {
   const { id } = useParams()
@@ -19,6 +20,7 @@ export default function BikeDetails() {
   const [bookedDates, setBookedDates] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
 
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -301,6 +303,25 @@ export default function BikeDetails() {
                 You'll need to log in to book this bike
               </p>
             )}
+
+            {user && (
+              <div style={{ marginTop: '16px', textAlign: 'center' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsReportModalOpen(true)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#94a3b8',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    textDecoration: 'underline'
+                  }}
+                >
+                  🚩 Report this bike listing
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -315,6 +336,15 @@ export default function BikeDetails() {
       }}>
         <ReviewList reviews={reviews} bikeRating={bikeRating} stats={reviewStats} />
       </div>
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        targetType="bike"
+        targetId={bike._id}
+        targetName={`${bike.brand} ${bike.model}`}
+      />
     </div>
   )
 }

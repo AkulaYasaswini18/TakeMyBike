@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom'
 import AuthContext from '../context/AuthContext'
 import RenterDashboard from './RenterDashboard'
 import OwnerDashboard from './OwnerDashboard'
+import AdminDashboard from './AdminDashboard'
 
 export default function DashboardRouter() {
   const { user, loading } = useContext(AuthContext)
@@ -17,6 +18,10 @@ export default function DashboardRouter() {
 
   if (!user) {
     return <Navigate to="/login" replace />
+  }
+
+  if (user.role === 'admin') {
+    return <AdminDashboard />
   }
 
   if (user.role === 'owner') {

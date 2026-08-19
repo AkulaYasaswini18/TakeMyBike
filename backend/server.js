@@ -27,6 +27,8 @@ app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/deposits', require('./routes/depositRoutes'));
 app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/reports', require('./routes/reportRoutes'));
 
 // Error handler
 app.use(errorHandler);

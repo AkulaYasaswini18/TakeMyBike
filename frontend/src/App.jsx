@@ -18,6 +18,7 @@ import UserProfile from './pages/UserProfile'
 import DashboardRouter from './pages/DashboardRouter'
 import RenterDashboard from './pages/RenterDashboard'
 import OwnerDashboard from './pages/OwnerDashboard'
+import AdminDashboard from './pages/AdminDashboard'
 import NotificationBell from './components/notifications/NotificationBell'
 import ProtectedRoute from './routes/ProtectedRoute'
 
@@ -51,6 +52,11 @@ function AppInner() {
               <Link to="/dashboard" style={{ color: '#38bdf8', textDecoration: 'none', fontSize: '14px', fontWeight: '600' }}>
                 📊 Dashboard
               </Link>
+              {user.role === 'admin' && (
+                <Link to="/admin/dashboard" style={{ color: '#c084fc', textDecoration: 'none', fontSize: '14px', fontWeight: '600' }}>
+                  🛡️ Admin Panel
+                </Link>
+              )}
               {user.role === 'renter' && (
                 <Link to="/my-bookings" style={{ color: '#e2e8f0', textDecoration: 'none', fontSize: '14px', fontWeight: '500' }}>
                   My Bookings
@@ -98,6 +104,9 @@ function AppInner() {
 
           {/* Unified Dashboard Router */}
           <Route path="/dashboard" element={<ProtectedRoute><DashboardRouter/></ProtectedRoute>} />
+
+          {/* Admin routes */}
+          <Route path="/admin/dashboard" element={<ProtectedRoute roles={["admin"]}><AdminDashboard/></ProtectedRoute>} />
 
           {/* Renter routes */}
           <Route path="/renter/dashboard" element={<ProtectedRoute roles={["renter"]}><RenterDashboard/></ProtectedRoute>} />

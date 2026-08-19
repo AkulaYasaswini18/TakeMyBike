@@ -1,15 +1,19 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import AuthContext from '../context/AuthContext'
 import * as reviewService from '../services/reviewService'
 import StarRating from '../components/common/StarRating'
+import ReportModal from '../components/common/ReportModal'
 
 export default function UserProfile() {
   const { id } = useParams()
+  const { user } = useContext(AuthContext)
   const [profileUser, setProfileUser] = useState(null)
   const [reviews, setReviews] = useState([])
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
 
   useEffect(() => {
     loadUserProfile()
@@ -110,6 +114,27 @@ export default function UserProfile() {
               </span>
             </div>
           </div>
+
+          {user && user._id !== profileUser._id && (
+            <div>
+              <button
+                type="button"
+                onClick={() => setIsReportModalOpen(true)}
+                style={{
+                  background: 'none',
+                  border: '1px solid #cbd5e1',
+                  color: '#64748b',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  fontSize: '12.5px',
+                  cursor: 'pointer',
+                  fontWeight: '600'
+                }}
+              >
+                🚩 Report User
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -175,6 +200,15 @@ export default function UserProfile() {
           </div>
         )}
       </div>
+
+      {/* Report User Modal */}
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        targetType="user"
+        targetId={profileUser._id}
+        targetName={profileUser.name}
+      />
     </div>
   )
 }
