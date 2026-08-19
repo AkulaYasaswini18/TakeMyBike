@@ -1,0 +1,528 @@
+/* Renter Dashboard Styles */
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 20px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  color: #0f172a;
+}
+
+/* Header & Welcome Banner */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.dashboard-title-group h1 {
+  margin: 0 0 6px 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-subtitle {
+  margin: 0;
+  font-size: 15px;
+  color: #64748b;
+}
+
+.header-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+  transition: all 0.2s ease;
+}
+
+.header-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
+  color: #ffffff;
+}
+
+/* Stat Metric Grid */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.08);
+}
+
+.stat-card-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 14px;
+}
+
+.stat-card-icon-wrapper.blue { background: #e0f2fe; color: #0284c7; }
+.stat-card-icon-wrapper.emerald { background: #dcfce7; color: #16a34a; }
+.stat-card-icon-wrapper.amber { background: #fef3c7; color: #d97706; }
+.stat-card-icon-wrapper.purple { background: #f3e8ff; color: #9333ea; }
+.stat-card-icon-wrapper.slate { background: #f1f5f9; color: #475569; }
+
+.stat-card-label {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.stat-card-value {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.stat-card-hint {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 6px;
+}
+
+/* Info Box */
+.cash-notice-box {
+  background: #f8fafc;
+  border-left: 4px solid #0284c7;
+  padding: 14px 18px;
+  border-radius: 0 10px 10px 0;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13.5px;
+  color: #334155;
+}
+
+/* Tabs Navigation */
+.tabs-header {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.tab-button {
+  background: none;
+  border: none;
+  outline: none;
+  padding: 12px 18px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab-button:hover {
+  color: #0f172a;
+}
+
+.tab-button.active {
+  color: #0284c7;
+  border-bottom-color: #0284c7;
+}
+
+.tab-badge {
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 9999px;
+}
+
+.tab-button.active .tab-badge {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+/* Rental Cards List */
+.rentals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.rental-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.rental-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
+}
+
+.rental-card-main {
+  display: flex;
+  gap: 22px;
+  padding: 22px;
+  flex-wrap: wrap;
+}
+
+.rental-bike-thumb {
+  width: 140px;
+  height: 105px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.rental-card-content {
+  flex: 1;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.rental-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.rental-bike-title {
+  margin: 0 0 4px 0;
+  font-size: 19px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.rental-dates {
+  font-size: 13.5px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Status Badges */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+/* Financial Details Breakdown */
+.rental-financials-bar {
+  display: flex;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 12px 0 16px 0;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.fin-item {
+  flex: 1;
+  min-width: 110px;
+}
+
+.fin-item-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.fin-item-val {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.fin-item-val.highlight {
+  color: #0284c7;
+}
+
+/* Card Actions Area */
+.rental-card-footer {
+  border-top: 1px solid #f1f5f9;
+  background: #fafbfc;
+  padding: 14px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.owner-contact-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.actions-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid transparent;
+}
+
+.action-btn-primary {
+  background: #0284c7;
+  color: #ffffff;
+}
+.action-btn-primary:hover {
+  background: #0369a1;
+}
+
+.action-btn-secondary {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+.action-btn-secondary:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.action-btn-warning {
+  background: #fef3c7;
+  border-color: #fde68a;
+  color: #b45309;
+}
+.action-btn-warning:hover {
+  background: #fde68a;
+}
+
+/* OTP Box */
+.otp-inline-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.otp-input-dash {
+  padding: 6px 12px;
+  border: 2px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  width: 110px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.otp-input-dash:focus {
+  border-color: #0284c7;
+  outline: none;
+}
+
+/* Table Style for Cash & Deposits */
+.ledger-table-wrapper {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  overflow-x: auto;
+}
+
+.ledger-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  text-align: left;
+}
+
+.ledger-table th {
+  background: #f8fafc;
+  padding: 14px 18px;
+  font-weight: 700;
+  color: #475569;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ledger-table td {
+  padding: 16px 18px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+.ledger-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ledger-table tr:hover td {
+  background: #fafbfc;
+}
+
+/* Embedded Notifications List */
+.notif-panel-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 20px;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+}
+
+.notif-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.notif-item.unread {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.notif-item:hover {
+  background: #f1f5f9;
+}
+
+.notif-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.notif-content {
+  flex: 1;
+}
+
+.notif-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #0f172a;
+  margin-bottom: 2px;
+}
+
+.notif-msg {
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 4px;
+}
+
+.notif-time {
+  font-size: 11.5px;
+  color: #94a3b8;
+}
+
+/* Empty States */
+.empty-dashboard-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px dashed #cbd5e1;
+  padding: 48px 24px;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.empty-icon {
+  font-size: 44px;
+  margin-bottom: 14px;
+  display: inline-block;
+}
+
+.empty-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+.empty-desc {
+  font-size: 14px;
+  color: #64748b;
+  max-width: 420px;
+  margin: 0 auto 20px auto;
+}

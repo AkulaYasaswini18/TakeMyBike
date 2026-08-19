@@ -15,6 +15,9 @@ import Booking from './pages/Booking'
 import MyBookings from './pages/MyBookings'
 import RentalRequests from './pages/RentalRequests'
 import UserProfile from './pages/UserProfile'
+import DashboardRouter from './pages/DashboardRouter'
+import RenterDashboard from './pages/RenterDashboard'
+import OwnerDashboard from './pages/OwnerDashboard'
 import NotificationBell from './components/notifications/NotificationBell'
 import ProtectedRoute from './routes/ProtectedRoute'
 
@@ -45,8 +48,11 @@ function AppInner() {
           ) : (
             <>
               <span style={{ color: '#94a3b8', fontSize: '14px' }}>Hi, <strong style={{ color: '#f8fafc' }}>{user.name}</strong> ({user.role})</span>
+              <Link to="/dashboard" style={{ color: '#38bdf8', textDecoration: 'none', fontSize: '14px', fontWeight: '600' }}>
+                📊 Dashboard
+              </Link>
               {user.role === 'renter' && (
-                <Link to="/my-bookings" style={{ color: '#38bdf8', textDecoration: 'none', fontSize: '14px', fontWeight: '500' }}>
+                <Link to="/my-bookings" style={{ color: '#e2e8f0', textDecoration: 'none', fontSize: '14px', fontWeight: '500' }}>
                   My Bookings
                 </Link>
               )}
@@ -54,7 +60,7 @@ function AppInner() {
                 <>
                   <Link to="/my-bikes" style={{ color: '#e2e8f0', textDecoration: 'none', fontSize: '14px' }}>My Bikes</Link>
                   <Link to="/add-bike" style={{ color: '#e2e8f0', textDecoration: 'none', fontSize: '14px' }}>+ Add Bike</Link>
-                  <Link to="/rental-requests" style={{ color: '#38bdf8', textDecoration: 'none', fontSize: '14px', fontWeight: '500' }}>
+                  <Link to="/rental-requests" style={{ color: '#e2e8f0', textDecoration: 'none', fontSize: '14px', fontWeight: '500' }}>
                     Rental Requests
                   </Link>
                 </>
@@ -90,11 +96,16 @@ function AppInner() {
           <Route path="/bikes/:id" element={<BikeDetails/>} />
           <Route path="/user/:id" element={<UserProfile/>} />
 
+          {/* Unified Dashboard Router */}
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardRouter/></ProtectedRoute>} />
+
           {/* Renter routes */}
+          <Route path="/renter/dashboard" element={<ProtectedRoute roles={["renter"]}><RenterDashboard/></ProtectedRoute>} />
           <Route path="/booking/:id" element={<ProtectedRoute roles={["renter"]}><Booking/></ProtectedRoute>} />
           <Route path="/my-bookings" element={<ProtectedRoute roles={["renter"]}><MyBookings/></ProtectedRoute>} />
 
           {/* Owner routes */}
+          <Route path="/owner/dashboard" element={<ProtectedRoute roles={["owner"]}><OwnerDashboard/></ProtectedRoute>} />
           <Route path="/add-bike" element={<ProtectedRoute roles={["owner"]}><AddBike/></ProtectedRoute>} />
           <Route path="/add-bike/:id" element={<ProtectedRoute roles={["owner"]}><AddBike/></ProtectedRoute>} />
           <Route path="/my-bikes" element={<ProtectedRoute roles={["owner"]}><MyBikes/></ProtectedRoute>} />

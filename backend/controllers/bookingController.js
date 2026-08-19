@@ -5,6 +5,7 @@ const CashPayment = require('../models/CashPayment');
 const Inspection = require('../models/Inspection');
 const SecurityDeposit = require('../models/SecurityDeposit');
 const Dispute = require('../models/Dispute');
+const Review = require('../models/Review');
 const { createNotification } = require('./notificationController');
 
 // Create a booking request
@@ -612,6 +613,175 @@ exports.returnBike = async (req, res, next) => {
     next(err);
   }
 };
+
+// Get Renter Dashboard Summary & Bookings
+exports.getRenterDashboard = async (req, res, next) => {
+  try {
+    if (req.user.role !== 'renter') {
+      return res.status(403).json({ error: 'Only renters can access the renter dashboard' });
+    }
+
+    const renterId = req.user._id;
+
+    // Fetch all bookings for this renter
+    const bookings = await Booking.find({ renter: renterId })
+      .populate('bike', 'brand model pricePerDay securityDeposit images location city')
+      .populate('owner', 'name phone email rating numReviews profileImage')
+      .sort({ createdAt: -1 });
+
+    const bookingIds = bookings.map(b => b._id);
+
+    // Fetch associated cash payments, security deposits, and reviews submitted by renter
+    const [cashPayments, securityDeposits, reviews] = await Promise.all([
+      CashPayment.find({ booking: { $in: bookingIds } }).sort({ createdAt: -1 }),
+      SecurityDeposit.find({ booking: { $in: bookingIds } }).sort({ createdAt: -1 }),
+      Review.find({ fromUser: renterId }).sort({ createdAt: -1 })
+    ]);
+
+    // Categorize bookings
+    const activeBookings = bookings.filter(b => b.status === 'ACTIVE');
+    const upcomingBookings = bookings.filter(b =>
+      ['PENDING', 'APPROVED', 'CASH_PAYMENT_PENDING', 'CASH_PAYMENT_CONFIRMED'].includes(b.status)
+    );
+    const completedBookings = bookings.filter(b => b.status === 'COMPLETED');
+    const disputedBookings = bookings.filter(b => b.status === 'DISPUTED');
+    const cancelledBookings = bookings.filter(b => ['CANCELLED', 'REJECTED'].includes(b.status));
+
+    // Calculate summary statistics
+    const totalRentals = bookings.length;
+    const activeCount = activeBookings.length;
+    const upcomingCount = upcomingBookings.length;
+    const completedCount = completedBookings.length;
+
+    // Total cash recorded for active & completed rentals (rentalAmount + securityDeposit)
+    const paidStatuses = ['CASH_PAYMENT_CONFIRMED', 'ACTIVE', 'COMPLETED', 'DISPUTED'];
+    const totalCashPaid = bookings
+      .filter(b => paidStatuses.includes(b.status))
+      .reduce((sum, b) => sum + (b.totalCash || 0), 0);
+
+    const totalRentalAmountPaid = bookings
+      .filter(b => b.status === 'COMPLETED')
+      .reduce((sum, b) => sum + (b.rentalAmount || 0), 0);
+
+    const totalDepositsRecorded = bookings
+      .filter(b => paidStatuses.includes(b.status))
+      .reduce((sum, b) => sum + (b.securityDeposit || 0), 0);
+
+    res.json({
+      summary: {
+        totalRentals,
+        activeCount,
+        upcomingCount,
+        completedCount,
+        disputedCount: disputedBookings.length,
+        totalCashPaid,
+        totalRentalAmountPaid,
+        totalDepositsRecorded
+      },
+      bookings,
+      activeBookings,
+      upcomingBookings,
+      completedBookings,
+      disputedBookings,
+      cancelledBookings,
+      cashPayments,
+      securityDeposits,
+      reviews
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Get Owner Dashboard Summary & Data
+exports.getOwnerDashboard = async (req, res, next) => {
+  try {
+    if (req.user.role !== 'owner') {
+      return res.status(403).json({ error: 'Only bike owners can access the owner dashboard' });
+    }
+
+    const ownerId = req.user._id;
+
+    // Fetch all bikes owned by this user
+    const bikes = await Bike.find({ owner: ownerId }).sort({ createdAt: -1 });
+
+    // Fetch all bookings for this owner
+    const bookings = await Booking.find({ owner: ownerId })
+      .populate('renter', 'name phone email rating numReviews profileImage')
+      .populate('bike', 'brand model pricePerDay securityDeposit images location city')
+      .sort({ createdAt: -1 });
+
+    const bookingIds = bookings.map(b => b._id);
+
+    // Fetch cash payments, security deposits, reviews, and user info
+    const [cashPayments, securityDeposits, reviews, ownerUser] = await Promise.all([
+      CashPayment.find({ booking: { $in: bookingIds } })
+        .populate('confirmedBy', 'name email')
+        .sort({ createdAt: -1 }),
+      SecurityDeposit.find({ booking: { $in: bookingIds } }).sort({ createdAt: -1 }),
+      Review.find({ toUser: ownerId })
+        .populate('fromUser', 'name profileImage role')
+        .populate('bike', 'brand model')
+        .sort({ createdAt: -1 }),
+      User.findById(ownerId).select('rating numReviews name email phone')
+    ]);
+
+    // Categorize bookings
+    const pendingRequests = bookings.filter(b => b.status === 'PENDING');
+    const cashPaymentPending = bookings.filter(b => b.status === 'CASH_PAYMENT_PENDING');
+    const readyForOtp = bookings.filter(b => b.status === 'CASH_PAYMENT_CONFIRMED');
+    const activeBookings = bookings.filter(b => b.status === 'ACTIVE');
+    const completedBookings = bookings.filter(b => b.status === 'COMPLETED');
+    const disputedBookings = bookings.filter(b => b.status === 'DISPUTED');
+    const cancelledBookings = bookings.filter(b => ['CANCELLED', 'REJECTED'].includes(b.status));
+
+    // Calculate total earnings: sum of rentalAmount for COMPLETED bookings (clearly recorded cash)
+    const totalEarnings = completedBookings.reduce((sum, b) => sum + (b.rentalAmount || 0), 0);
+
+    // Calculate total cash handled (rentals + deposits)
+    const paidStatuses = ['CASH_PAYMENT_CONFIRMED', 'ACTIVE', 'COMPLETED', 'DISPUTED'];
+    const totalCashHandled = bookings
+      .filter(b => paidStatuses.includes(b.status))
+      .reduce((sum, b) => sum + (b.totalCash || 0), 0);
+
+    // Calculate summary statistics
+    const totalBikes = bikes.length;
+    const approvedBikes = bikes.filter(b => b.isApproved).length;
+    const availableBikes = bikes.filter(b => b.isApproved && b.isAvailable).length;
+
+    res.json({
+      summary: {
+        totalEarnings, // Sum of completed rentalAmounts (direct cash recorded)
+        totalCashHandled,
+        totalBikes,
+        approvedBikes,
+        availableBikes,
+        activeRentals: activeBookings.length,
+        pendingRequestsCount: pendingRequests.length,
+        cashPaymentPendingCount: cashPaymentPending.length,
+        readyForOtpCount: readyForOtp.length,
+        completedRentalsCount: completedBookings.length,
+        disputedCount: disputedBookings.length,
+        totalReviews: reviews.length,
+        averageRating: ownerUser?.rating || 0
+      },
+      bikes,
+      bookings,
+      pendingRequests,
+      actionRequiredBookings: [...cashPaymentPending, ...readyForOtp],
+      activeBookings,
+      completedBookings,
+      disputedBookings,
+      cancelledBookings,
+      cashPayments,
+      securityDeposits,
+      reviews
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 
 
 

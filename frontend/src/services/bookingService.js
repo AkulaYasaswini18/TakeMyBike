@@ -78,5 +78,12 @@ export async function getBookingDeposit(bookingId) {
   return res.data
 }
 
+export async function getRenterDashboard() {
+  const res = await api.get('/api/bookings/renter/dashboard')
+  return res.data
+}
 
-
+export async function getOwnerDashboard() {
+  const res = await api.get('/api/bookings/owner/dashboard')
+  return res.data
+}

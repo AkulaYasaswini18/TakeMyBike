@@ -1,0 +1,495 @@
+/* Owner Dashboard Styles */
+.owner-dash-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 20px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  color: #0f172a;
+}
+
+/* Header */
+.owner-dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.owner-dash-title-group h1 {
+  margin: 0 0 6px 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.owner-dash-subtitle {
+  margin: 0;
+  font-size: 15px;
+  color: #64748b;
+}
+
+.owner-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-add-bike-dash {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  padding: 10px 18px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-add-bike-dash:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+  color: #ffffff;
+}
+
+/* Earnings & Direct Cash Disclaimer Card */
+.earnings-highlight-card {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #f8fafc;
+  border-radius: 18px;
+  padding: 26px 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+  border: 1px solid #334155;
+}
+
+.earnings-left {
+  flex: 1;
+  min-width: 280px;
+}
+
+.earnings-tag {
+  display: inline-block;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.earnings-amount {
+  font-size: 38px;
+  font-weight: 900;
+  color: #34d399;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.earnings-disclaimer {
+  font-size: 13.5px;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+.earnings-disclaimer strong {
+  color: #e2e8f0;
+}
+
+.earnings-badge-pill {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 14px 20px;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.earnings-badge-pill-title {
+  font-size: 12px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.earnings-badge-pill-val {
+  font-size: 20px;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+/* Stat Grid */
+.owner-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.owner-stat-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 18px 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.owner-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px -4px rgba(15, 23, 42, 0.08);
+}
+
+.owner-stat-icon {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.owner-stat-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.owner-stat-val {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+/* Tabs */
+.owner-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.owner-tab-btn {
+  background: none;
+  border: none;
+  padding: 12px 18px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.owner-tab-btn:hover {
+  color: #0f172a;
+}
+
+.owner-tab-btn.active {
+  color: #0284c7;
+  border-bottom-color: #0284c7;
+}
+
+.owner-tab-badge {
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 9999px;
+}
+
+.owner-tab-btn.active .owner-tab-badge {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+/* Owner Requests Cards */
+.requests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.request-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.request-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
+}
+
+.request-card-header {
+  padding: 18px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.request-card-body {
+  padding: 20px 22px;
+}
+
+.request-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.request-detail-box {
+  background: #f8fafc;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
+}
+
+.request-detail-title {
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.request-detail-val {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.request-actions-bar {
+  background: #fafbfc;
+  padding: 14px 22px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Owner Action Buttons */
+.btn-approve {
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-approve:hover { background: #059669; }
+
+.btn-reject {
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-reject:hover { background: #dc2626; }
+
+.btn-confirm-cash {
+  background: #f59e0b;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-confirm-cash:hover { background: #d97706; }
+
+.btn-otp-gen {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-otp-gen:hover { background: #0369a1; }
+
+.btn-return-complete {
+  background: #8b5cf6;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-return-complete:hover { background: #7c3aed; }
+
+.btn-refund-deposit {
+  background: #0d9488;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-refund-deposit:hover { background: #0f766e; }
+
+/* Bikes Management Grid */
+.bikes-manage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.bike-manage-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+}
+
+.bike-manage-thumb {
+  height: 160px;
+  width: 100%;
+  object-fit: cover;
+  background: #f1f5f9;
+}
+
+.bike-manage-content {
+  padding: 16px 18px;
+  flex: 1;
+}
+
+.bike-manage-title {
+  margin: 0 0 6px 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.bike-manage-meta {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.bike-manage-rates {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  font-size: 13px;
+}
+
+.bike-manage-footer {
+  padding: 12px 18px;
+  border-top: 1px solid #f1f5f9;
+  background: #fafbfc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Reviews List */
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+.review-item-card {
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  padding: 20px;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+}
+
+.review-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.review-user-name {
+  font-weight: 700;
+  font-size: 14.5px;
+  color: #0f172a;
+}
+
+.review-comment-text {
+  font-size: 13.5px;
+  color: #334155;
+  line-height: 1.5;
+  margin: 10px 0;
+  font-style: italic;
+}
+
+.review-bike-tag {
+  font-size: 12px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.breakdown-ratings {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 11.5px;
+  color: #64748b;
+}

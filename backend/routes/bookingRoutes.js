@@ -7,10 +7,12 @@ const bookingController = require('../controllers/bookingController');
 
 // Renter routes
 router.post('/', authenticate, authorize('renter'), bookingController.createBooking);
+router.get('/renter/dashboard', authenticate, authorize('renter'), bookingController.getRenterDashboard);
 router.get('/my-bookings', authenticate, authorize('renter'), bookingController.getMyBookings);
 router.post('/:id/verify-otp', authenticate, authorize('renter'), bookingController.verifyOtp);
 
 // Owner routes
+router.get('/owner/dashboard', authenticate, authorize('owner'), bookingController.getOwnerDashboard);
 router.get('/owner/requests', authenticate, authorize('owner'), bookingController.getOwnerBookings);
 router.put('/:id/approve', authenticate, authorize('owner'), bookingController.approveBooking);
 router.put('/:id/reject', authenticate, authorize('owner'), bookingController.rejectBooking);
